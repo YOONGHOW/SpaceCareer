@@ -1,18 +1,56 @@
-import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { collection, onSnapshot } from "firebase/firestore";
+import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
   Image,
-  TextInput,
-  ScrollView,
   KeyboardAvoidingView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
+import { db } from "../../firebaseConfig";
+import { certificates, courses } from "../model/dataType";
 
 export default function Homepage() {
   const router = useRouter();
+  const [certificatesList, setCertList] = useState<certificates[]>([]);
+  const [courseList, setCourseList] = useState<courses[]>([]);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    const unsubscribeCert = onSnapshot(
+      collection(db, "certificate"),
+      (snapshot) => {
+        const certData = snapshot.docs.map((doc) => ({
+          cert_id: doc.id,
+          ...doc.data(),
+        })) as certificates[];
+
+        setCertList(certData);
+        setLoading(false);
+      }
+    );
+
+    const unsubscribeCourse = onSnapshot(
+      collection(db, "courses"),
+      (snapshot) => {
+        const courseData = snapshot.docs.map((doc) => ({
+          course_id: doc.id,
+          ...doc.data(),
+        })) as courses[];
+
+        setCourseList(courseData);
+        setLoading(false);
+      }
+    );
+    return () => {
+      unsubscribeCert();
+      unsubscribeCourse();
+    };
+  }, []);
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: "#d9efffff" }}>
       <ScrollView
@@ -34,16 +72,17 @@ export default function Homepage() {
             placeholderTextColor="#999"
           />
         </View>
-        <Text style={styles.subheader}>Recommanded Courses</Text>
-        {Array.from({ length: 4 }).map((_, index) => (
-          <View key={index} style={styles.box}>
+        <Text style={styles.subheader}>Recommanded Certificate</Text>
+        {certificatesList.map((item) => (
+          <View key={item.cert_id} style={styles.box}>
             <View style={styles.textContainer}>
-              <Text style={styles.courseTitle}>
-                Foundations: Data, Data, Data Everywhere
+              <Text style={styles.courseTitle}>{item.cert_name} </Text>
+              <Text style={styles.courseProvider}>{item.company_name}</Text>
+              <Text style={styles.achievementType}>{item.cert_type}</Text>
+              <Text style={styles.rate}>
+                ⭐ 4.8 {"("}
+                {item.review}k{")"}
               </Text>
-              <Text style={styles.courseProvider}>Google</Text>
-              <Text style={styles.achievementType}>Course</Text>
-              <Text style={styles.rate}>⭐ 4.8 {"(233k)"}</Text>
             </View>
             <Image
               source={require("../../assets/images/exploration.png")}
@@ -52,16 +91,17 @@ export default function Homepage() {
           </View>
         ))}
 
-        <Text style={styles.subheader}>Recommanded Certificates</Text>
-        {Array.from({ length: 4 }).map((_, index) => (
-          <View key={index} style={styles.box}>
+        <Text style={styles.subheader}>Recommanded Courses</Text>
+        {courseList.map((course) => (
+          <View key={course.course_id} style={styles.box}>
             <View style={styles.textContainer}>
-              <Text style={styles.courseTitle}>
-                Foundations: Data, Data, Data Everywhere
+              <Text style={styles.courseTitle}>{course.course_name} </Text>
+              <Text style={styles.courseProvider}>{course.company_name}</Text>
+              <Text style={styles.achievementType}>{course.course_type}</Text>
+              <Text style={styles.rate}>
+                ⭐ 4.8 {"("}
+                {course.review}k{")"}
               </Text>
-              <Text style={styles.courseProvider}>Google</Text>
-              <Text style={styles.achievementType}>Course</Text>
-              <Text style={styles.rate}>⭐ 4.8 {"(233k)"}</Text>
             </View>
             <Image
               source={require("../../assets/images/exploration.png")}

@@ -23,3 +23,19 @@ export interface jobs {
   job_salary: number;
   job_type: string;
 }
+
+export interface courses {
+  course_id: string;
+  company_name: string;
+  course_name: string;
+  course_type: string;
+  review: number;
+}
+
+export interface certificates {
+  cert_id: string;
+  company_name: string;
+  cert_name: string;
+  cert_type: string;
+  review: number;
+}
