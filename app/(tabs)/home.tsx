@@ -1,17 +1,18 @@
-import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { collection, onSnapshot } from "firebase/firestore";
+import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
   Image,
-  TextInput,
-  ScrollView,
   KeyboardAvoidingView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { db } from "../../firebaseConfig";
-import { collection, onSnapshot } from "firebase/firestore";
 import { jobs } from "../model/dataType";
 
 export default function Homepage() {
@@ -55,7 +56,16 @@ export default function Homepage() {
         </View>
 
         {jobList.map((item) => (
-          <View key={item.job_id} style={styles.box}>
+          <TouchableOpacity
+            key={item.job_id}
+            style={styles.box}
+            onPress={() =>
+              router.push({
+                pathname: "/jobInformation",
+                params: { id: item.job_id },
+              })
+            }
+          >
             <Image
               source={require("../../assets/images/logo.png")}
               style={styles.companyLogo}
@@ -67,7 +77,7 @@ export default function Homepage() {
               <Text style={styles.location}>{item.job_location}</Text>
               <Text style={styles.salary}>RM{item.job_salary}</Text>
             </View>
-          </View>
+          </TouchableOpacity>
         ))}
       </ScrollView>
     </KeyboardAvoidingView>

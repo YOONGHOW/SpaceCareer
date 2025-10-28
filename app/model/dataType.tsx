@@ -30,6 +30,7 @@ export interface courses {
   course_name: string;
   course_type: string;
   review: number;
+  course_description: string;
 }
 
 export interface certificates {
@@ -37,5 +38,6 @@ export interface certificates {
   company_name: string;
   cert_name: string;
   cert_type: string;
+  cert_description: string;
   review: number;
 }

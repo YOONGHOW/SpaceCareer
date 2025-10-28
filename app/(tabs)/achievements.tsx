@@ -9,6 +9,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { db } from "../../firebaseConfig";
@@ -74,7 +75,16 @@ export default function Homepage() {
         </View>
         <Text style={styles.subheader}>Recommanded Certificate</Text>
         {certificatesList.map((item) => (
-          <View key={item.cert_id} style={styles.box}>
+          <TouchableOpacity
+            key={item.cert_id}
+            style={styles.box}
+            onPress={() =>
+              router.push({
+                pathname: "/certInformation",
+                params: { id: item.cert_id },
+              })
+            }
+          >
             <View style={styles.textContainer}>
               <Text style={styles.courseTitle}>{item.cert_name} </Text>
               <Text style={styles.courseProvider}>{item.company_name}</Text>
@@ -88,12 +98,21 @@ export default function Homepage() {
               source={require("../../assets/images/exploration.png")}
               style={styles.companyLogo}
             />
-          </View>
+          </TouchableOpacity>
         ))}
 
         <Text style={styles.subheader}>Recommanded Courses</Text>
         {courseList.map((course) => (
-          <View key={course.course_id} style={styles.box}>
+          <TouchableOpacity
+            key={course.course_id}
+            style={styles.box}
+            onPress={() =>
+              router.push({
+                pathname: "/learningInformation",
+                params: { id: course.course_id },
+              })
+            }
+          >
             <View style={styles.textContainer}>
               <Text style={styles.courseTitle}>{course.course_name} </Text>
               <Text style={styles.courseProvider}>{course.company_name}</Text>
@@ -107,7 +126,7 @@ export default function Homepage() {
               source={require("../../assets/images/exploration.png")}
               style={styles.companyLogo}
             />
-          </View>
+          </TouchableOpacity>
         ))}
       </ScrollView>
     </KeyboardAvoidingView>
