@@ -1,6 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React from "react";
+import { collection, onSnapshot } from "firebase/firestore";
+import React, { useEffect, useState } from "react";
+
 import {
   Image,
   KeyboardAvoidingView,
@@ -10,10 +12,82 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { db } from "../../firebaseConfig";
+import {
+  certificates,
+  certRegister,
+  courseRegister,
+  courses,
+} from "../model/dataType";
 
 export default function LearningPage() {
   const router = useRouter();
+  const [courseRegisterList, setCourseRegisterList] = useState<
+    courseRegister[]
+  >([]);
+  const [certRegisterList, setCertRegisterList] = useState<certRegister[]>([]);
 
+  useEffect(() => {
+    //Course Register Display
+
+    const unsubCourseApplied = onSnapshot(
+      collection(db, "courseRegisted"),
+      (snapshot) => {
+        const appliedData = snapshot.docs.map((doc) => ({
+          courseRegister_id: doc.id,
+          ...doc.data(),
+        })) as courseRegister[];
+
+        const unsubCourse = onSnapshot(collection(db, "courses"), (jobSnap) => {
+          const jobMap = new Map<string, courses>();
+          jobSnap.docs.forEach((doc) =>
+            jobMap.set(doc.id, doc.data() as courses)
+          );
+
+          const merged = appliedData.map((course) => ({
+            ...course,
+            courseDetails: jobMap.get(course.course_id),
+          }));
+
+          setCourseRegisterList(merged);
+        });
+      }
+    );
+
+    //Certificate Register Display
+
+    const unsubCertApplied = onSnapshot(
+      collection(db, "certRegisted"),
+      (snapshot) => {
+        const appliedData = snapshot.docs.map((doc) => ({
+          certRegisted_id: doc.id,
+          ...doc.data(),
+        })) as certRegister[];
+
+        const unsubCert = onSnapshot(
+          collection(db, "certificate"),
+          (certSnap) => {
+            const certMap = new Map<string, certificates>();
+            certSnap.docs.forEach((doc) =>
+              certMap.set(doc.id, doc.data() as certificates)
+            );
+
+            const merged = appliedData.map((cert) => ({
+              ...cert,
+              certDetails: certMap.get(cert.certId),
+            }));
+
+            setCertRegisterList(merged);
+          }
+        );
+      }
+    );
+
+    return () => {
+      unsubCourseApplied();
+      unsubCertApplied();
+    };
+  }, []);
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: "#d9efffff" }}>
       <ScrollView
@@ -46,39 +120,71 @@ export default function LearningPage() {
         </View>
 
         <Text style={styles.subheader}>Registered Courses</Text>
-        {Array.from({ length: 2 }).map((_, index) => (
-          <View key={index} style={styles.course_box}>
+        {courseRegisterList.map((course) => (
+          <TouchableOpacity
+            key={course.courseRegister_id}
+            style={styles.course_box}
+          >
             <View style={styles.textContainer}>
               <Text style={styles.courseTitle}>
-                Foundations: Data, Data, Data Everywhere
+                {course.courseDetails?.course_name}
               </Text>
-              <Text style={styles.courseProvider}>Google</Text>
-              <Text style={styles.achievementType}>Course</Text>
-              <Text style={styles.rate}>⭐ 4.8 {"(233k)"}</Text>
+              <Text style={styles.courseProvider}>
+                {course.courseDetails?.company_name}
+              </Text>
+              <Text style={styles.achievementType}>
+                {course.courseDetails?.course_type}
+              </Text>
+              <Text style={styles.rate}>
+                ⭐ 4.8 {"("}
+                {course.courseDetails?.review}
+                {")"}
+              </Text>
+              <Text style={styles.status}>
+                Status:{" "}
+                <Text style={styles.statusChange}>{course.courseStatus}</Text>
+              </Text>
             </View>
             <Image
               source={require("../../assets/images/exploration.png")}
               style={styles.companyLogo}
             />
-          </View>
+          </TouchableOpacity>
         ))}
 
+        {/*Certificate Part*/}
+
         <Text style={styles.subheader}>Registered Certificates</Text>
-        {Array.from({ length: 2 }).map((_, index) => (
-          <View key={index} style={styles.course_box}>
+        {certRegisterList.map((cert) => (
+          <TouchableOpacity
+            key={cert.certRegisted_id}
+            style={styles.course_box}
+          >
             <View style={styles.textContainer}>
               <Text style={styles.courseTitle}>
-                Foundations: Data, Data, Data Everywhere
+                {cert.certDetails?.cert_name}
               </Text>
-              <Text style={styles.courseProvider}>Google</Text>
-              <Text style={styles.achievementType}>Course</Text>
-              <Text style={styles.rate}>⭐ 4.8 {"(233k)"}</Text>
+              <Text style={styles.courseProvider}>
+                {cert.certDetails?.company_name}
+              </Text>
+              <Text style={styles.achievementType}>
+                {cert.certDetails?.cert_type}
+              </Text>
+              <Text style={styles.rate}>
+                ⭐ 4.8 {"("}
+                {cert.certDetails?.review}
+                {")"}
+              </Text>
+              <Text style={styles.status}>
+                Status:{" "}
+                <Text style={styles.statusChange}>{cert.certStatus}</Text>
+              </Text>
             </View>
             <Image
               source={require("../../assets/images/exploration.png")}
               style={styles.companyLogo}
             />
-          </View>
+          </TouchableOpacity>
         ))}
       </ScrollView>
     </KeyboardAvoidingView>
@@ -235,5 +341,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#8b8b8b",
     marginTop: 1,
+  },
+
+  status: {
+    fontSize: 16,
+    color: "#909192ff",
+    marginTop: 15,
+    fontWeight: "bold",
+  },
+
+  statusChange: {
+    fontSize: 15,
+    color: "#5c8d66ff",
+    fontWeight: "bold",
   },
 });

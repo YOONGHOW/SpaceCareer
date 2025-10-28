@@ -1,9 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Image,
   KeyboardAvoidingView,
   ScrollView,
@@ -12,7 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { db } from "../firebaseConfig";
+import { auth, db } from "../firebaseConfig";
 import { certificates } from "./model/dataType";
 
 export default function Homepage() {
@@ -22,7 +23,7 @@ export default function Homepage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchJob = async () => {
+    const fetchCert = async () => {
       try {
         const docRef = doc(db, "certificate", id as string);
         const docSnap = await getDoc(docRef);
@@ -36,7 +37,7 @@ export default function Homepage() {
       }
     };
 
-    if (id) fetchJob();
+    if (id) fetchCert();
   }, [id]);
 
   if (loading) {
@@ -54,6 +55,48 @@ export default function Homepage() {
       </View>
     );
   }
+
+  {
+    /*Store register cert*/
+  }
+  const user = auth.currentUser;
+
+  if (!user) {
+    return;
+  }
+
+  const handleRegisterCert = async () => {
+    try {
+      const user = auth.currentUser;
+      if (!user) {
+        Alert.alert("Error", "User not logged in");
+        return;
+      }
+      const certRegisterID = "cert_" + Date.now();
+      const cert_Status = "Registed";
+      const newDocRef = doc(db, "certRegisted", certRegisterID);
+      const data = {
+        certRegister_id: certRegisterID,
+        userId: user.uid,
+        certId: cert.cert_id,
+        certStatus: cert_Status,
+        createdAt: new Date(),
+      };
+
+      await setDoc(newDocRef, data);
+
+      const userRef = doc(db, "users", user.uid);
+      await updateDoc(userRef, {
+        certRegister_id: certRegisterID,
+      });
+
+      Alert.alert("Success", "Certificate class register successfully!");
+      router.push("/learn");
+    } catch (error: any) {
+      console.error(error);
+      Alert.alert("Error", error.message);
+    }
+  };
 
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: "#d9efffff" }}>
@@ -104,7 +147,7 @@ export default function Homepage() {
           </View>
           <TouchableOpacity
             style={styles.btnApply}
-            onPress={() => router.push("/(tabs)/learn")}
+            onPress={handleRegisterCert}
           >
             <Text style={styles.btnText}>Start</Text>
           </TouchableOpacity>

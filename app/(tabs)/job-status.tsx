@@ -1,15 +1,48 @@
 import { useRouter } from "expo-router";
+import { collection, onSnapshot } from "firebase/firestore";
+import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
   Image,
-  ScrollView,
   KeyboardAvoidingView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
+import { db } from "../../firebaseConfig";
+import { jobApplied, jobs } from "../model/dataType";
 
 export default function JobStatus() {
   const router = useRouter();
+  const [jobAppliedList, setJobAppliedList] = useState<jobApplied[]>([]);
+
+  useEffect(() => {
+    const unsubJobApplied = onSnapshot(
+      collection(db, "jobApplied"),
+      (snapshot) => {
+        const appliedData = snapshot.docs.map((doc) => ({
+          jobApplied_id: doc.id,
+          ...doc.data(),
+        })) as jobApplied[];
+
+        const unsubJobs = onSnapshot(collection(db, "job"), (jobSnap) => {
+          const jobMap = new Map<string, jobs>();
+          jobSnap.docs.forEach((doc) => jobMap.set(doc.id, doc.data() as jobs));
+
+          const merged = appliedData.map((applied) => ({
+            ...applied,
+            jobDetails: jobMap.get(applied.jobId),
+          }));
+
+          setJobAppliedList(merged);
+        });
+      }
+    );
+    return () => {
+      unsubJobApplied();
+    };
+  }, []);
 
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: "#d9efffff" }}>
@@ -20,25 +53,41 @@ export default function JobStatus() {
       >
         <Text style={styles.headerTitle}>My Applications</Text>
 
-        {Array.from({ length: 2 }).map((_, index) => (
-          <View key={index} style={styles.box}>
+        {jobAppliedList.map((applied) => (
+          <TouchableOpacity
+            key={applied.jobApplied_id}
+            style={styles.box}
+            onPress={() =>
+              router.push({
+                pathname: "/jobReview",
+                params: { id: applied.jobDetails?.job_id },
+              })
+            }
+          >
             <Image
               source={require("../../assets/images/logo.png")}
               style={styles.companyLogo}
             />
             <View style={styles.textContainer}>
               <Text style={styles.jobTitle}>
-                Internship - Software Engineer
+                {applied.jobDetails?.job_name}
               </Text>
-              <Text style={styles.companyName}>Google Inc.</Text>
-              <Text style={styles.jobType}>Full Time</Text>
-              <Text style={styles.location}>Kuala Lumpur, Malaysia</Text>
-              <Text style={styles.salary}>RM1000 - RM1200</Text>
+              <Text style={styles.companyName}>
+                {applied.jobDetails?.company_name}
+              </Text>
+              <Text style={styles.jobType}>{applied.jobDetails?.job_type}</Text>
+              <Text style={styles.location}>
+                {applied.jobDetails?.job_location}
+              </Text>
+              <Text style={styles.salary}>
+                RM{applied.jobDetails?.job_salary}
+              </Text>
               <Text style={styles.status}>
-                Status: <Text style={styles.statusChange}>Received</Text>
+                Status:{" "}
+                <Text style={styles.statusChange}>{applied.jobStatus}</Text>
               </Text>
             </View>
-          </View>
+          </TouchableOpacity>
         ))}
       </ScrollView>
     </KeyboardAvoidingView>
@@ -76,8 +125,8 @@ const styles = StyleSheet.create({
   },
 
   companyLogo: {
-    height: 65,
-    width: 65,
+    height: 80,
+    width: 80,
     marginRight: 20,
     borderRadius: 5,
   },

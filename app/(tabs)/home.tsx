@@ -18,7 +18,6 @@ import { jobs } from "../model/dataType";
 export default function Homepage() {
   const router = useRouter();
   const [jobList, setJobList] = useState<jobs[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "job"), (snapshot) => {
@@ -28,7 +27,6 @@ export default function Homepage() {
       })) as jobs[];
 
       setJobList(jobData);
-      setLoading(false);
     });
     return () => unsubscribe();
   }, []);

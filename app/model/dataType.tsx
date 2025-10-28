@@ -41,3 +41,26 @@ export interface certificates {
   cert_description: string;
   review: number;
 }
+
+export interface jobApplied {
+  jobApplied_id: string;
+  jobId: string;
+  userId: string;
+  jobStatus: string;
+  jobDetails?: jobs;
+}
+
+export interface certRegister {
+  certId: string;
+  certRegisted_id: string;
+  userId: string;
+  certDetails?: certificates;
+  certStatus: string;
+}
+export interface courseRegister {
+  course_id: string;
+  courseRegister_id: string;
+  userId: string;
+  courseDetails?: courses;
+  courseStatus: string;
+}

@@ -1,9 +1,10 @@
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Image,
   KeyboardAvoidingView,
   ScrollView,
@@ -12,7 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { db } from "../firebaseConfig";
+import { auth, db } from "../firebaseConfig";
 import { jobs } from "./model/dataType";
 
 export default function Homepage() {
@@ -54,6 +55,49 @@ export default function Homepage() {
       </View>
     );
   }
+
+  {
+    /*Store register cert*/
+  }
+  const user = auth.currentUser;
+
+  if (!user) {
+    return;
+  }
+
+  const handleJobApplied = async () => {
+    try {
+      const appliedJobStatus = "Received";
+      const user = auth.currentUser;
+      if (!user) {
+        Alert.alert("Error", "User not logged in");
+        return;
+      }
+      const jobAppliedID = "job_" + Date.now();
+
+      const newDocRef = doc(db, "jobApplied", jobAppliedID);
+      const data = {
+        jobApplied_id: jobAppliedID,
+        userId: user.uid,
+        jobId: job.job_id,
+        jobStatus: appliedJobStatus,
+        createdAt: new Date(),
+      };
+
+      await setDoc(newDocRef, data);
+
+      const userRef = doc(db, "users", user.uid);
+      await updateDoc(userRef, {
+        jobApplied_id: jobAppliedID,
+      });
+
+      Alert.alert("Success", "Job Applied Successfully!");
+      router.push("/job-status");
+    } catch (error: any) {
+      console.error(error);
+      Alert.alert("Error", error.message);
+    }
+  };
 
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: "#d9efffff" }}>
@@ -112,10 +156,7 @@ export default function Homepage() {
             <Text style={styles.subheading}>Job Responsibilities:</Text>
             <Text style={styles.job_descrip}>{job.job_description}</Text>
           </View>
-          <TouchableOpacity
-            style={styles.btnApply}
-            onPress={() => router.push("/(tabs)/job-status")}
-          >
+          <TouchableOpacity style={styles.btnApply} onPress={handleJobApplied}>
             <Text style={styles.btnText}>Quick Apply</Text>
           </TouchableOpacity>
         </View>
