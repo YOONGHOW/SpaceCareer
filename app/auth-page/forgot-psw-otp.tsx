@@ -1,14 +1,14 @@
-import React, { useState, useRef } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import React, { useRef, useState } from "react";
 import {
-  View,
+  Image,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  Image,
+  View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
 
 export default function OTPVerification() {
   const router = useRouter();
@@ -34,7 +34,7 @@ export default function OTPVerification() {
         <Ionicons name="arrow-back" size={24} color="black" />
       </TouchableOpacity>
       <Image
-        source={require("../assets/images/secure_mail.png")}
+        source={require("../../assets/images/secure_mail.png")}
         style={styles.headerImg}
         alt="logo"
       />
@@ -54,7 +54,7 @@ export default function OTPVerification() {
             maxLength={1}
             onChangeText={(text: string) => handleChange(text, index)}
             ref={(ref) => {
-              inputs[index] = ref; // ref is TextInput | null
+              inputs[index] = ref;
             }}
           />
         ))}
@@ -66,7 +66,10 @@ export default function OTPVerification() {
       </Text>
 
       <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText} onPress={() => router.push("/")}>
+        <Text
+          style={styles.buttonText}
+          onPress={() => router.push("/auth-page/new-password")}
+        >
           Verify OTP
         </Text>
       </TouchableOpacity>

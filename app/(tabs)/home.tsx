@@ -59,7 +59,7 @@ export default function Homepage() {
             style={styles.box}
             onPress={() =>
               router.push({
-                pathname: "/jobInformation",
+                pathname: "../job-seeker-page/jobInformation",
                 params: { id: item.job_id },
               })
             }

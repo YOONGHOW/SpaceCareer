@@ -1,33 +1,40 @@
-import React, { useState } from "react";
 import { useRouter } from "expo-router";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  TextInput,
-  TouchableOpacity,
-  Alert,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth, db } from "../firebaseConfig";
 import {
   collection,
-  query,
-  where,
-  getDocs,
   doc,
   getDoc,
+  getDocs,
+  query,
+  where,
 } from "firebase/firestore";
+import React, { useState } from "react";
+import {
+  Alert,
+  Image,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { auth, db } from "../firebaseConfig";
 
 export default function LoginScreen() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
   const handleLogin = async () => {
+    if (!email || !password) {
+      setError("Incorrect Email and Password");
+      return;
+    }
+
     try {
+      setError("");
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email,
@@ -40,7 +47,7 @@ export default function LoginScreen() {
       const userSnap = await getDoc(userRef);
 
       if (!userSnap.exists()) {
-        Alert.alert("User data not found");
+        Alert.alert("Error", "User data not found");
         return;
       }
 
@@ -61,11 +68,11 @@ export default function LoginScreen() {
       if (hasEducation && hasSkills) {
         router.push("/(tabs)/home");
       } else {
-        router.push("/educationSetup");
+        router.push("../job-seeker-page/educationSetup");
       }
-    } catch (error) {
-      console.error(error);
-      Alert.alert("Login failed");
+    } catch (err: any) {
+      console.error(err);
+      setError("Incorrect Email and Password");
     }
   };
 
@@ -83,37 +90,48 @@ export default function LoginScreen() {
           <Text style={styles.systemName}>AI Career Guidance System</Text>
           <Text></Text>
         </View>
+
         <View style={styles.box}>
           <Text style={styles.label}>Email: </Text>
           <TextInput
             placeholder="Enter your email"
-            style={styles._textInput}
-            onChangeText={setEmail}
+            style={[styles._textInput, error ? styles.errorInput : null]}
+            onChangeText={(text) => {
+              setEmail(text);
+              setError("");
+            }}
             value={email}
           />
+
           <Text style={styles.label}>Password: </Text>
           <TextInput
             placeholder="Enter your password"
-            style={styles._textInput}
-            onChangeText={setPassword}
+            style={[styles._textInput, error ? styles.errorInput : null]}
+            onChangeText={(text) => {
+              setPassword(text);
+              setError("");
+            }}
             value={password}
             secureTextEntry
           />
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
           <TouchableOpacity style={styles.btnLogin} onPress={handleLogin}>
             <Text style={styles.btnText}>Login</Text>
           </TouchableOpacity>
+
           <Text
             style={styles.forgotPswLabel}
-            onPress={() => router.push("/forgot-psw-email")}
+            onPress={() => router.push("../auth-page/forgot-psw-email")}
           >
             Forgot Password ?
           </Text>
         </View>
+
         <Text style={styles.asking}>
           Don{"'"}t have an account yet?{" "}
           <Text
             style={styles.register}
-            onPress={() => router.push("/register")}
+            onPress={() => router.push("../auth-page/register")}
           >
             Sign up now
           </Text>
@@ -122,9 +140,10 @@ export default function LoginScreen() {
     </SafeAreaView>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
-    padding: 24,
+    padding: "6%",
     flex: 1,
   },
 
@@ -137,29 +156,29 @@ const styles = StyleSheet.create({
     fontSize: 15,
     textAlign: "center",
     color: "#4a60c0ff",
-    marginTop: 20,
+    marginTop: "6%",
   },
 
   header: {
-    marginVertical: 36,
+    marginVertical: "13%",
   },
   headerImg: {
-    height: 150,
-    width: 150,
+    height: "43%",
+    width: "43%",
     alignSelf: "center",
-    marginBottom: 36,
+    marginBottom: "6%",
   },
   headerTitle: {
     color: "#8BA0FF",
     fontSize: 27,
     fontWeight: "700",
     textAlign: "center",
-    marginBottom: 6,
-    marginTop: -30,
+    marginBottom: "1%",
+    marginTop: "-5%",
   },
   logoName: {
     textAlign: "center",
-    marginTop: -40,
+    marginTop: "-7%",
     fontSize: 20,
     fontWeight: "bold",
     fontFamily: "serif",
@@ -183,7 +202,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 6,
     elevation: 4,
-    marginTop: -25,
+    marginTop: "-45%",
   },
   label: {
     fontSize: 18,
@@ -194,7 +213,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     textAlign: "right",
     color: "#4a60c0ff",
-    marginTop: 25,
+    marginTop: "8%",
   },
 
   btnLogin: {
@@ -204,7 +223,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     width: "75%",
     alignSelf: "center",
-    marginTop: 25,
+    marginTop: "10%",
     backgroundColor: "#e7eeffff",
   },
 
@@ -223,5 +242,18 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#7b9ef6ff",
     fontSize: 16,
+    paddingHorizontal: 10,
+  },
+
+  errorInput: {
+    borderColor: "#e76161ff",
+  },
+
+  errorText: {
+    color: "red",
+    fontSize: 14,
+    position: "absolute",
+    top: "66%",
+    right: "35%",
   },
 });

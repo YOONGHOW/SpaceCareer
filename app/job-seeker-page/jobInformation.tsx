@@ -1,6 +1,6 @@
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import { arrayUnion, doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -13,14 +13,15 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { auth, db } from "../firebaseConfig";
-import { jobs } from "./model/dataType";
+import { auth, db } from "../../firebaseConfig";
+import { jobs } from "../model/dataType";
 
 export default function Homepage() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const [job, setJob] = useState<jobs | null>(null);
   const [loading, setLoading] = useState(true);
+  const [alreadyApplied, setAlreadyApplied] = useState(false);
 
   useEffect(() => {
     const fetchJob = async () => {
@@ -69,10 +70,27 @@ export default function Homepage() {
     try {
       const appliedJobStatus = "Received";
       const user = auth.currentUser;
+
       if (!user) {
         Alert.alert("Error", "User not logged in");
         return;
       }
+
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+      if (!userSnap.exists()) {
+        Alert.alert("Error", "User data not found");
+        return;
+      }
+      const userData = userSnap.data() || {};
+      const appliedList = (userData.jobApplied_id || []) as string[];
+      const alreadyApplied = appliedList.includes(job.job_id);
+
+      if (alreadyApplied) {
+        setAlreadyApplied(true);
+        return;
+      }
+
       const jobAppliedID = "job_" + Date.now();
 
       const newDocRef = doc(db, "jobApplied", jobAppliedID);
@@ -86,9 +104,8 @@ export default function Homepage() {
 
       await setDoc(newDocRef, data);
 
-      const userRef = doc(db, "users", user.uid);
       await updateDoc(userRef, {
-        jobApplied_id: jobAppliedID,
+        jobApplied_id: arrayUnion(job.job_id),
       });
 
       Alert.alert("Success", "Job Applied Successfully!");
@@ -115,7 +132,7 @@ export default function Homepage() {
           </TouchableOpacity>
           <View style={styles.titleContainer}>
             <Image
-              source={require("../assets/images/logo.png")}
+              source={require("../../assets/images/logo.png")}
               style={styles.companyLogo}
             />
             <Text style={styles.jobTitle}>{job.job_name}</Text>
@@ -156,8 +173,17 @@ export default function Homepage() {
             <Text style={styles.subheading}>Job Responsibilities:</Text>
             <Text style={styles.job_descrip}>{job.job_description}</Text>
           </View>
-          <TouchableOpacity style={styles.btnApply} onPress={handleJobApplied}>
-            <Text style={styles.btnText}>Quick Apply</Text>
+          <TouchableOpacity
+            style={[
+              styles.applyButton,
+              alreadyApplied ? styles.disabledButton : styles.applyButton,
+            ]}
+            onPress={handleJobApplied}
+            disabled={alreadyApplied}
+          >
+            <Text style={styles.btnText}>
+              {alreadyApplied ? "Already Applied" : "Quick Apply"}
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -250,7 +276,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  btnApply: {
+  applyButton: {
     padding: 7,
     borderWidth: 2,
     borderColor: "#7b9ef6ff",
@@ -259,6 +285,10 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     marginTop: 30,
     backgroundColor: "#e7eeffff",
+  },
+
+  disabledButton: {
+    backgroundColor: "#389bfdff",
   },
 
   btnText: {

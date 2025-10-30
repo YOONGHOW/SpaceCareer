@@ -1,16 +1,16 @@
-import React, { useState } from "react";
 import { useRouter } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { collection, doc, setDoc, updateDoc } from "firebase/firestore";
+import React, { useState } from "react";
 import {
-  View,
+  Alert,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  Alert,
+  View,
 } from "react-native";
-import { auth, db } from "../firebaseConfig";
-import { doc, setDoc, collection, updateDoc } from "firebase/firestore";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { auth, db } from "../../firebaseConfig";
 
 export default function EducationSetup() {
   const router = useRouter();
@@ -52,7 +52,7 @@ export default function EducationSetup() {
       });
 
       Alert.alert("Success", "Education added successfully!");
-      router.push("/careerProfile");
+      router.push("../careerProfile");
     } catch (error: any) {
       console.error(error);
       Alert.alert("Error", error.message);

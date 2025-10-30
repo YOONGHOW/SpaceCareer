@@ -1,40 +1,37 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
+import React from "react";
 import {
-  View,
-  Text,
   StyleSheet,
+  Text,
   TextInput,
   TouchableOpacity,
+  View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function NewPassword() {
+export default function ForogtPassword() {
   const router = useRouter();
 
+  function handleOtp() {
+    // after login success, go to tabs/home
+    router.replace("../auth-page/forgot-psw-otp");
+  }
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#d9efffff" }}>
       <View style={styles.container}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={24} color="black" />
+        </TouchableOpacity>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Change Password</Text>
+          <Text style={styles.headerTitle}>Forgot Password</Text>
         </View>
         <View style={styles.box}>
-          <Text style={styles.label}>Password: </Text>
-          <TextInput
-            placeholder="Enter your password"
-            style={styles._textInput}
-            secureTextEntry
-          />
-          <Text style={styles.label}>Confirm Password: </Text>
-          <TextInput
-            placeholder="Enter your password again"
-            style={styles._textInput}
-            secureTextEntry
-          />
-          <TouchableOpacity
-            style={styles.btnNext}
-            onPress={() => router.push("/")}
-          >
-            <Text style={styles.btnText}>Submit</Text>
+          <Text style={styles.label}>Email: </Text>
+          <TextInput placeholder="Enter your email" style={styles._textInput} />
+
+          <TouchableOpacity style={styles.btnLogin} onPress={handleOtp}>
+            <Text style={styles.btnText}>Next</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -43,12 +40,13 @@ export default function NewPassword() {
 }
 const styles = StyleSheet.create({
   container: {
-    padding: 24,
+    padding: "5%",
     flex: 1,
   },
+
   header: {
-    marginVertical: 36,
-    marginTop: 100,
+    marginVertical: "6%",
+    marginTop: "50%",
   },
 
   headerTitle: {
@@ -57,6 +55,14 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     textAlign: "center",
     marginBottom: 6,
+    marginTop: "-5%",
+  },
+
+  backBtn: {
+    position: "absolute",
+    top: 40,
+    left: 20,
+    padding: 8,
   },
 
   box: {
@@ -70,29 +76,22 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 6,
     elevation: 4,
-    marginTop: -10,
+    marginTop: "-2%",
   },
-
   label: {
     fontSize: 18,
     fontWeight: "600",
     color: "#1B457C",
   },
-  forgotPswLabel: {
-    fontSize: 15,
-    textAlign: "right",
-    color: "#4a60c0ff",
-    marginTop: 30,
-  },
 
-  btnNext: {
+  btnLogin: {
     padding: 10,
     borderWidth: 2,
     borderColor: "#7b9ef6ff",
     borderRadius: 30,
     width: "75%",
     alignSelf: "center",
-    marginTop: 25,
+    marginTop: "9%",
     backgroundColor: "#e7eeffff",
   },
 

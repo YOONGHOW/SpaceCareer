@@ -1,4 +1,4 @@
-import { FontAwesome, Ionicons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
@@ -13,22 +13,22 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { auth, db } from "../firebaseConfig";
-import { jobs } from "./model/dataType";
+import { auth, db } from "../../firebaseConfig";
+import { certificates } from "../model/dataType";
 
 export default function Homepage() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
-  const [job, setJob] = useState<jobs | null>(null);
+  const [cert, setCert] = useState<certificates | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchJob = async () => {
+    const fetchCert = async () => {
       try {
-        const docRef = doc(db, "job", id as string);
+        const docRef = doc(db, "certificate", id as string);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          setJob({ job_id: docSnap.id, ...docSnap.data() } as jobs);
+          setCert({ cert_id: docSnap.id, ...docSnap.data() } as certificates);
         }
       } catch (error) {
         console.error("Error fetching job:", error);
@@ -37,7 +37,7 @@ export default function Homepage() {
       }
     };
 
-    if (id) fetchJob();
+    if (id) fetchCert();
   }, [id]);
 
   if (loading) {
@@ -48,10 +48,10 @@ export default function Homepage() {
     );
   }
 
-  if (!job) {
+  if (!cert) {
     return (
       <View style={styles.center}>
-        <Text>Job not found</Text>
+        <Text>Certification not found</Text>
       </View>
     );
   }
@@ -65,22 +65,21 @@ export default function Homepage() {
     return;
   }
 
-  const handleJobApplied = async () => {
+  const handleRegisterCert = async () => {
     try {
-      const appliedJobStatus = "Received";
       const user = auth.currentUser;
       if (!user) {
         Alert.alert("Error", "User not logged in");
         return;
       }
-      const jobAppliedID = "job_" + Date.now();
-
-      const newDocRef = doc(db, "jobApplied", jobAppliedID);
+      const certRegisterID = "cert_" + Date.now();
+      const cert_Status = "Registed";
+      const newDocRef = doc(db, "certRegisted", certRegisterID);
       const data = {
-        jobApplied_id: jobAppliedID,
+        certRegister_id: certRegisterID,
         userId: user.uid,
-        jobId: job.job_id,
-        jobStatus: appliedJobStatus,
+        certId: cert.cert_id,
+        certStatus: cert_Status,
         createdAt: new Date(),
       };
 
@@ -88,11 +87,11 @@ export default function Homepage() {
 
       const userRef = doc(db, "users", user.uid);
       await updateDoc(userRef, {
-        jobApplied_id: jobAppliedID,
+        certRegister_id: certRegisterID,
       });
 
-      Alert.alert("Success", "Job Applied Successfully!");
-      router.push("/job-status");
+      Alert.alert("Success", "Certificate class register successfully!");
+      router.push("/learn");
     } catch (error: any) {
       console.error(error);
       Alert.alert("Error", error.message);
@@ -115,11 +114,11 @@ export default function Homepage() {
           </TouchableOpacity>
           <View style={styles.titleContainer}>
             <Image
-              source={require("../assets/images/logo.png")}
+              source={require("../../assets/images/logo.png")}
               style={styles.companyLogo}
             />
-            <Text style={styles.jobTitle}>{job.job_name}</Text>
-            <Text style={styles.companyName}>{job.company_name}</Text>
+            <Text style={styles.certTitle}>{cert.cert_name}</Text>
+            <Text style={styles.companyName}>{cert.company_name}</Text>
           </View>
           <View
             style={{
@@ -130,20 +129,10 @@ export default function Homepage() {
             }}
           />
           <View style={styles.textContainer}>
-            <Text style={styles.location}>
-              <Ionicons name="location" size={21} color="black" />
+            <Text style={styles.certType}>
+              <Ionicons name="book" size={21} color="black" />
               {"  "}
-              {job.job_location}
-            </Text>
-            <Text style={styles.jobType}>
-              <Ionicons name="time" size={21} color="black" />
-              {"  "}
-              {job.job_type}
-            </Text>
-            <Text style={styles.salary}>
-              <FontAwesome name="money" size={19} color="black" />
-              {"  "}
-              RM{job.job_salary}
+              {cert.cert_type}
             </Text>
             <View
               style={{
@@ -153,9 +142,15 @@ export default function Homepage() {
                 marginVertical: 12,
               }}
             />
-            <Text style={styles.subheading}>Job Responsibilities:</Text>
-            <Text style={styles.job_descrip}>{job.job_description}</Text>
+            <Text style={styles.subheading}>Certificate Info:</Text>
+            <Text style={styles.cert_description}>{cert.cert_description}</Text>
           </View>
+          <TouchableOpacity
+            style={styles.btnApply}
+            onPress={handleRegisterCert}
+          >
+            <Text style={styles.btnText}>Start</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -209,7 +204,7 @@ const styles = StyleSheet.create({
     color: "#1B457C",
   },
 
-  jobTitle: {
+  certTitle: {
     fontSize: 18,
     fontWeight: "700",
     color: "#1B457C",
@@ -220,30 +215,38 @@ const styles = StyleSheet.create({
     color: "#6b6b6b",
     marginTop: 4,
   },
-  jobType: {
+  certType: {
     fontSize: 15,
     color: "#8b8b8b",
-    marginTop: 12,
   },
 
-  job_descrip: {
+  cert_description: {
     fontSize: 15,
     color: "#8b8b8b",
     marginTop: 12,
     textAlign: "justify",
   },
-  location: {
-    fontSize: 15,
-    color: "#8b8b8b",
-  },
-  salary: {
-    fontSize: 15,
-    color: "#8b8b8b",
-    marginTop: 12,
-  },
   center: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+
+  btnApply: {
+    padding: 7,
+    borderWidth: 2,
+    borderColor: "#7b9ef6ff",
+    borderRadius: 25,
+    width: "60%",
+    alignSelf: "center",
+    marginTop: 30,
+    backgroundColor: "#e7eeffff",
+  },
+
+  btnText: {
+    textAlign: "center",
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#1B457C",
   },
 });

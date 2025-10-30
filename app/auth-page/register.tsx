@@ -1,18 +1,18 @@
-import React, { useState } from "react";
-import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
+import React, { useState } from "react";
 import {
-  View,
-  Text,
+  Alert,
   StyleSheet,
+  Text,
   TextInput,
   TouchableOpacity,
-  Alert,
+  View,
 } from "react-native";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth, db } from "../firebaseConfig";
-import { doc, setDoc } from "firebase/firestore";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { auth, db } from "../../firebaseConfig";
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -21,16 +21,52 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
+  //Error State
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [confirmError, setConfirmError] = useState("");
+  const [usernameError, setUsernameError] = useState("");
+
   const handleSignup = async () => {
-    if (password !== confirmPassword) {
-      Alert.alert(
-        "Passwords do not match",
-        "Please re-enter the same password."
-      );
-      return;
-    }
+    let isValid = true;
 
     try {
+      setEmailError("");
+      setPasswordError("");
+      setConfirmError("");
+      setUsernameError("");
+
+      if (!username) {
+        setUsernameError("Username is required");
+        isValid = false;
+      }
+
+      if (!email) {
+        setEmailError("Email is required");
+        isValid = false;
+      } else if (!/\S+@\S+\.\S+/.test(email)) {
+        setEmailError("Enter a valid email");
+        isValid = false;
+      }
+
+      if (!password) {
+        setPasswordError("Password is required");
+        isValid = false;
+      } else if (password.length < 8) {
+        setPasswordError("Password must be at least 8 characters");
+        isValid = false;
+      }
+
+      if (!confirmPassword) {
+        setConfirmError("Please confirm your password");
+        isValid = false;
+      } else if (password !== confirmPassword) {
+        setConfirmError("Passwords do not match");
+        isValid = false;
+      }
+
+      if (!isValid) return;
+
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
@@ -43,9 +79,9 @@ export default function RegisterScreen() {
         createdAt: new Date().toISOString(),
       });
       Alert.alert("Signup successful");
-      router.push("/otpRequest");
+      router.push("/auth-page/otpRequest");
     } catch {
-      Alert.alert("Signup failed");
+      Alert.alert("Email already exists");
     }
   };
 
@@ -64,31 +100,57 @@ export default function RegisterScreen() {
             placeholder="Enter your name"
             style={styles._textInput}
             value={username}
-            onChangeText={setUsername}
+            onChangeText={(text) => {
+              setUsername(text);
+              setUsernameError("");
+            }}
           />
+          {usernameError ? (
+            <Text style={styles.error}>{usernameError}</Text>
+          ) : null}
+
           <Text style={styles.label}>Email: </Text>
           <TextInput
             placeholder="Enter your email"
             style={styles._textInput}
-            onChangeText={setEmail}
+            onChangeText={(text) => {
+              setEmail(text);
+              setEmailError("");
+            }}
             value={email}
           />
+          {emailError ? <Text style={styles.error}>{emailError}</Text> : null}
+
           <Text style={styles.label}>Password: </Text>
           <TextInput
             placeholder="Enter your password"
             style={styles._textInput}
-            onChangeText={setPassword}
+            onChangeText={(text) => {
+              setPassword(text);
+              setPasswordError("");
+            }}
             value={password}
             secureTextEntry
           />
+          {passwordError ? (
+            <Text style={styles.error}>{passwordError}</Text>
+          ) : null}
+
           <Text style={styles.label}>Confirm Password: </Text>
           <TextInput
             placeholder="Enter your password again"
             style={styles._textInput}
-            onChangeText={setConfirmPassword}
+            onChangeText={(text) => {
+              setConfirmPassword(text);
+              setConfirmError("");
+            }}
             value={confirmPassword}
             secureTextEntry
           />
+          {confirmError ? (
+            <Text style={styles.error}>{confirmError}</Text>
+          ) : null}
+
           <TouchableOpacity style={styles.btnNext} onPress={handleSignup}>
             <Text style={styles.btnText}>Register</Text>
           </TouchableOpacity>
@@ -99,12 +161,11 @@ export default function RegisterScreen() {
 }
 const styles = StyleSheet.create({
   container: {
-    padding: 24,
+    padding: "5%",
     flex: 1,
   },
   header: {
-    marginVertical: 36,
-    marginTop: 80,
+    marginVertical: "14%",
   },
 
   headerTitle: {
@@ -112,13 +173,14 @@ const styles = StyleSheet.create({
     fontSize: 27,
     fontWeight: "700",
     textAlign: "center",
-    marginBottom: 6,
+    marginBottom: "2%",
   },
 
   box: {
     width: "100%",
-    height: "70%",
+    height: "78%",
     padding: 20,
+    paddingBlockStart: 35,
     borderRadius: 12,
     backgroundColor: "#fff",
     shadowColor: "#000",
@@ -126,19 +188,14 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 6,
     elevation: 4,
-    marginTop: -10,
+    marginTop: "-5%",
+    position: "relative",
   },
 
   label: {
     fontSize: 18,
     fontWeight: "600",
     color: "#1B457C",
-  },
-  forgotPswLabel: {
-    fontSize: 15,
-    textAlign: "right",
-    color: "#4a60c0ff",
-    marginTop: 30,
   },
 
   backBtn: {
@@ -169,10 +226,16 @@ const styles = StyleSheet.create({
   _textInput: {
     marginBottom: 8,
     marginTop: 10,
-    height: "11%",
+    height: "10%",
     borderRadius: 8,
     borderWidth: 2,
     borderColor: "#7b9ef6ff",
     fontSize: 16,
+  },
+
+  error: {
+    color: "#de0000ff",
+    fontSize: 12,
+    marginTop: "-1%",
   },
 });

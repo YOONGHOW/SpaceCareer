@@ -1,17 +1,17 @@
-import React, { useState } from "react";
 import { useRouter } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { collection, doc, setDoc, updateDoc } from "firebase/firestore";
+import React, { useState } from "react";
 import {
-  View,
+  Alert,
+  FlatList,
+  StyleSheet,
   Text,
   TextInput,
-  FlatList,
   TouchableOpacity,
-  StyleSheet,
-  Alert,
+  View,
 } from "react-native";
-import { auth, db } from "../firebaseConfig";
-import { doc, setDoc, collection, updateDoc } from "firebase/firestore";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { auth, db } from "../../firebaseConfig";
 
 export default function CareerProfile() {
   const router = useRouter();

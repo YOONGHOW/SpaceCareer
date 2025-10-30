@@ -80,7 +80,7 @@ export default function Homepage() {
             style={styles.box}
             onPress={() =>
               router.push({
-                pathname: "/certInformation",
+                pathname: "../job-seeker-page/certInformation",
                 params: { id: item.cert_id },
               })
             }
@@ -108,7 +108,7 @@ export default function Homepage() {
             style={styles.box}
             onPress={() =>
               router.push({
-                pathname: "/learningInformation",
+                pathname: "../job-seeker-page/learningInformation",
                 params: { id: course.course_id },
               })
             }

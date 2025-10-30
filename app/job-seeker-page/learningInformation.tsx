@@ -13,22 +13,22 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { auth, db } from "../firebaseConfig";
-import { certificates } from "./model/dataType";
+import { auth, db } from "../../firebaseConfig";
+import { courses } from "../model/dataType";
 
 export default function Homepage() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
-  const [cert, setCert] = useState<certificates | null>(null);
+  const [course, setCourse] = useState<courses | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchCert = async () => {
+    const fetchJob = async () => {
       try {
-        const docRef = doc(db, "certificate", id as string);
+        const docRef = doc(db, "courses", id as string);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          setCert({ cert_id: docSnap.id, ...docSnap.data() } as certificates);
+          setCourse({ course_id: docSnap.id, ...docSnap.data() } as courses);
         }
       } catch (error) {
         console.error("Error fetching job:", error);
@@ -37,7 +37,7 @@ export default function Homepage() {
       }
     };
 
-    if (id) fetchCert();
+    if (id) fetchJob();
   }, [id]);
 
   if (loading) {
@@ -48,10 +48,10 @@ export default function Homepage() {
     );
   }
 
-  if (!cert) {
+  if (!course) {
     return (
       <View style={styles.center}>
-        <Text>Certification not found</Text>
+        <Text>Courses not found</Text>
       </View>
     );
   }
@@ -65,21 +65,21 @@ export default function Homepage() {
     return;
   }
 
-  const handleRegisterCert = async () => {
+  const handleRegisterCourse = async () => {
     try {
       const user = auth.currentUser;
       if (!user) {
         Alert.alert("Error", "User not logged in");
         return;
       }
-      const certRegisterID = "cert_" + Date.now();
-      const cert_Status = "Registed";
-      const newDocRef = doc(db, "certRegisted", certRegisterID);
+      const courseRegisterID = "course_" + Date.now();
+      const courseStatus = "Registered";
+      const newDocRef = doc(db, "courseRegisted", courseRegisterID);
       const data = {
-        certRegister_id: certRegisterID,
+        courseRegister_id: courseRegisterID,
         userId: user.uid,
-        certId: cert.cert_id,
-        certStatus: cert_Status,
+        course_id: course.course_id,
+        courseStatus: courseStatus,
         createdAt: new Date(),
       };
 
@@ -87,10 +87,10 @@ export default function Homepage() {
 
       const userRef = doc(db, "users", user.uid);
       await updateDoc(userRef, {
-        certRegister_id: certRegisterID,
+        courseRegister_id: courseRegisterID,
       });
 
-      Alert.alert("Success", "Certificate class register successfully!");
+      Alert.alert("Success", "Course class register successfully!");
       router.push("/learn");
     } catch (error: any) {
       console.error(error);
@@ -114,11 +114,11 @@ export default function Homepage() {
           </TouchableOpacity>
           <View style={styles.titleContainer}>
             <Image
-              source={require("../assets/images/logo.png")}
+              source={require("../../assets/images/logo.png")}
               style={styles.companyLogo}
             />
-            <Text style={styles.certTitle}>{cert.cert_name}</Text>
-            <Text style={styles.companyName}>{cert.company_name}</Text>
+            <Text style={styles.certTitle}>{course.course_name}</Text>
+            <Text style={styles.companyName}>{course.company_name}</Text>
           </View>
           <View
             style={{
@@ -132,7 +132,7 @@ export default function Homepage() {
             <Text style={styles.certType}>
               <Ionicons name="book" size={21} color="black" />
               {"  "}
-              {cert.cert_type}
+              {course.course_type}
             </Text>
             <View
               style={{
@@ -143,11 +143,13 @@ export default function Homepage() {
               }}
             />
             <Text style={styles.subheading}>Certificate Info:</Text>
-            <Text style={styles.cert_description}>{cert.cert_description}</Text>
+            <Text style={styles.cert_description}>
+              {course.course_description}
+            </Text>
           </View>
           <TouchableOpacity
             style={styles.btnApply}
-            onPress={handleRegisterCert}
+            onPress={handleRegisterCourse}
           >
             <Text style={styles.btnText}>Start</Text>
           </TouchableOpacity>
