@@ -67,6 +67,8 @@ export default function RegisterScreen() {
 
       if (!isValid) return;
 
+      const user_role = "job-seeker";
+
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
@@ -76,6 +78,7 @@ export default function RegisterScreen() {
         uid: userCredential.user.uid,
         email,
         username,
+        user_role,
         createdAt: new Date().toISOString(),
       });
       Alert.alert("Signup successful");
@@ -178,9 +181,7 @@ const styles = StyleSheet.create({
 
   box: {
     width: "100%",
-    height: "78%",
     padding: 20,
-    paddingBlockStart: 35,
     borderRadius: 12,
     backgroundColor: "#fff",
     shadowColor: "#000",
@@ -188,8 +189,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 6,
     elevation: 4,
-    marginTop: "-5%",
-    position: "relative",
   },
 
   label: {
@@ -226,11 +225,12 @@ const styles = StyleSheet.create({
   _textInput: {
     marginBottom: 8,
     marginTop: 10,
-    height: "10%",
+    height: 50,
     borderRadius: 8,
     borderWidth: 2,
     borderColor: "#7b9ef6ff",
     fontSize: 16,
+    paddingHorizontal: 10,
   },
 
   error: {

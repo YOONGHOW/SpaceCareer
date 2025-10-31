@@ -51,24 +51,33 @@ export default function LoginScreen() {
         return;
       }
 
-      const educationQuery = query(
-        collection(db, "education"),
-        where("userId", "==", uid)
-      );
-      const eduSnapshot = await getDocs(educationQuery);
-      const hasEducation = !eduSnapshot.empty;
+      const userData = userSnap.data();
+      const user_role = userData.user_role;
 
-      const skillQuery = query(
-        collection(db, "careerProfile"),
-        where("userId", "==", uid)
-      );
-      const skillSnapshot = await getDocs(skillQuery);
-      const hasSkills = !skillSnapshot.empty;
+      if (user_role === "job-seeker") {
+        const educationQuery = query(
+          collection(db, "education"),
+          where("userId", "==", uid)
+        );
+        const eduSnapshot = await getDocs(educationQuery);
+        const hasEducation = !eduSnapshot.empty;
 
-      if (hasEducation && hasSkills) {
-        router.push("/(tabs)/home");
+        const skillQuery = query(
+          collection(db, "careerProfile"),
+          where("userId", "==", uid)
+        );
+        const skillSnapshot = await getDocs(skillQuery);
+        const hasSkills = !skillSnapshot.empty;
+
+        if (hasEducation && hasSkills) {
+          router.push("/(tabs)/home");
+        } else {
+          router.push("../job-seeker-page/educationSetup");
+        }
+      } else if (user_role === "employer") {
+        router.push("/(employerTabs)/home");
       } else {
-        router.push("../job-seeker-page/educationSetup");
+        Alert.alert("Error", "Invalid user account");
       }
     } catch (err: any) {
       console.error(err);
@@ -131,7 +140,7 @@ export default function LoginScreen() {
           Don{"'"}t have an account yet?{" "}
           <Text
             style={styles.register}
-            onPress={() => router.push("../auth-page/register")}
+            onPress={() => router.push("../auth-page/accountType")}
           >
             Sign up now
           </Text>
