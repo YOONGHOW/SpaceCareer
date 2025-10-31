@@ -161,7 +161,6 @@ const styles = StyleSheet.create({
 
   box: {
     width: "100%",
-    height: "75%",
     padding: 20,
     borderRadius: 12,
     backgroundColor: "#fff",
@@ -170,7 +169,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 6,
     elevation: 4,
-    marginTop: -10,
   },
   label: {
     fontSize: 16,
@@ -202,13 +200,12 @@ const styles = StyleSheet.create({
   _textInput: {
     marginBottom: 8,
     marginTop: 10,
-    height: 48,
+    height: 50,
     borderRadius: 8,
     borderWidth: 2,
     borderColor: "#7b9ef6ff",
-    fontSize: 14,
+    fontSize: 16,
     paddingHorizontal: 10,
-    backgroundColor: "#fff",
   },
   suggestionBox: {
     position: "absolute",
