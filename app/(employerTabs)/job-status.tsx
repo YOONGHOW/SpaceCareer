@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { collection, onSnapshot, query } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import {
   Image,
@@ -22,10 +22,7 @@ export default function JobStatus() {
     const user = auth.currentUser;
     if (!user) return;
 
-    const appliedQuery = query(
-      collection(db, "jobApplied"),
-      where("userId", "==", user.uid)
-    );
+    const appliedQuery = query(collection(db, "jobApplied"));
 
     const unsubscribeApplied = onSnapshot(appliedQuery, (appliedSnap) => {
       const appliedDocs = appliedSnap.docs.map((doc) => ({

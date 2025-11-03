@@ -1,4 +1,12 @@
 // /types/firestoreTypes.ts
+export interface Company {
+  userId: string;
+  _companyType: string;
+  _companySize: string;
+  _companyLocation: string;
+  _companyDescription: string;
+}
+
 export interface Education {
   userId: string;
   _academicResult: string;

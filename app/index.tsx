@@ -70,12 +70,23 @@ export default function LoginScreen() {
         const hasSkills = !skillSnapshot.empty;
 
         if (hasEducation && hasSkills) {
-          router.push("/(tabs)/home");
+          router.push("/(job-seekerTabs)/home");
         } else {
           router.push("../job-seeker-page/educationSetup");
         }
       } else if (user_role === "employer") {
-        router.push("/(employerTabs)/home");
+        const companyQuery = query(
+          collection(db, "company"),
+          where("userId", "==", uid)
+        );
+        const cmpSnapshot = await getDocs(companyQuery);
+        const hasCompanySetup = !cmpSnapshot.empty;
+
+        if (hasCompanySetup) {
+          router.push("/(employerTabs)/home");
+        } else {
+          router.push("/employer-page/cmpInfoSetup");
+        }
       } else {
         Alert.alert("Error", "Invalid user account");
       }

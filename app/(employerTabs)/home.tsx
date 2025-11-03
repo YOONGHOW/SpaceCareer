@@ -1,35 +1,90 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { collection, onSnapshot } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDoc,
+  onSnapshot,
+  query,
+  where,
+} from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import {
+  Alert,
   Image,
   KeyboardAvoidingView,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
-import { db } from "../../firebaseConfig";
+import { auth, db } from "../../firebaseConfig";
 import { jobs } from "../model/dataType";
 
 export default function Homepage() {
   const router = useRouter();
   const [jobList, setJobList] = useState<jobs[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, "job"), (snapshot) => {
-      const jobData = snapshot.docs.map((doc) => ({
-        job_id: doc.id,
-        ...doc.data(),
-      })) as jobs[];
+    const fetchUserAndJobs = async () => {
+      try {
+        const user = auth.currentUser;
+        if (!user) {
+          Alert.alert("Error", "User not logged in");
+          return;
+        }
+        setUserId(user.uid);
 
-      setJobList(jobData);
-    });
-    return () => unsubscribe();
+        const userRef = doc(db, "users", user.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (!userSnap.exists()) {
+          Alert.alert("Error", "User data not found");
+          return;
+        }
+
+        const userData = userSnap.data();
+        const userCompanyId = userData?.company_id;
+
+        if (!userCompanyId) {
+          Alert.alert("Error", "Company ID not found for user");
+          return;
+        }
+
+        const q = query(
+          collection(db, "job"),
+          where("company_id", "==", userCompanyId)
+        );
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+          const jobData = snapshot.docs.map((doc) => ({
+            job_id: doc.id,
+            ...doc.data(),
+          })) as jobs[];
+
+          setJobList(jobData);
+          setLoading(false);
+        });
+
+        return () => unsubscribe();
+      } catch (error) {
+        console.error("Error loading jobs:", error);
+        Alert.alert("Error", "Failed to load jobs");
+      }
+    };
+
+    fetchUserAndJobs();
   }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={{ fontSize: 18 }}>Loading...</Text>
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: "#d9efffff" }}>
@@ -38,51 +93,61 @@ export default function Homepage() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.headerTitle}>Recommended Careers</Text>
-        <View style={styles.searchContainer}>
-          <Ionicons
-            name="search"
-            size={20}
-            color="#777"
-            style={styles.searchIcon}
-          />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Career search"
-            placeholderTextColor="#999"
-          />
-        </View>
+        <Text style={styles.headerTitle}>My Company Jobs</Text>
 
-        {jobList.map((item) => (
-          <TouchableOpacity
-            key={item.job_id}
-            style={styles.box}
-            onPress={() =>
-              router.push({
-                pathname: "../job-seeker-page/jobInformation",
-                params: { id: item.job_id },
-              })
-            }
-          >
-            <Image
-              source={require("../../assets/images/logo.png")}
-              style={styles.companyLogo}
-            />
-            <View style={styles.textContainer}>
-              <Text style={styles.jobTitle}>{item.job_name}</Text>
-              <Text style={styles.companyName}>{item.company_name}</Text>
-              <Text style={styles.jobType}>{item.job_type}</Text>
-              <Text style={styles.location}>{item.job_location}</Text>
-              <Text style={styles.salary}>RM{item.job_salary}</Text>
-            </View>
-          </TouchableOpacity>
-        ))}
+        <TouchableOpacity
+          style={styles.addBtn}
+          onPress={() =>
+            router.push({
+              pathname: "../employer-page/addJob",
+              params: { userId: userId ?? "" },
+            })
+          }
+        >
+          <Text style={styles.addBtnText}>+ Add New Job</Text>
+        </TouchableOpacity>
+
+        {jobList.length === 0 ? (
+          <Text style={styles.emptyText}>
+            No jobs found for your company yet.
+          </Text>
+        ) : (
+          jobList.map((item) => (
+            <TouchableOpacity
+              key={item.job_id}
+              style={styles.box}
+              onPress={() =>
+                router.push({
+                  pathname: "/employer-page/jobInformation",
+                  params: { id: item.job_id },
+                })
+              }
+            >
+              <Image
+                source={require("../../assets/images/logo.png")}
+                style={styles.companyLogo}
+              />
+              <View style={styles.textContainer}>
+                <Text style={styles.jobTitle}>{item.job_name}</Text>
+                <Text style={styles.companyName}>{item.company_name}</Text>
+                <Text style={styles.jobType}>{item.job_type}</Text>
+                <Text style={styles.location}>{item.job_location}</Text>
+                <Text style={styles.salary}>RM{item.job_salary}</Text>
+              </View>
+            </TouchableOpacity>
+          ))
+        )}
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   scrollContainer: {
     marginTop: 50,
     padding: 10,
@@ -95,35 +160,21 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 6,
   },
-  _textInput: {
-    width: "100%",
-    marginBottom: 8,
-    marginTop: 10,
-    padding: 15,
-    borderRadius: 25,
+  addBtn: {
+    padding: 10,
     borderWidth: 2,
     borderColor: "#7b9ef6ff",
-    fontSize: 16,
-    backgroundColor: "#ffffffff",
+    borderRadius: 30,
+    width: "75%",
+    alignSelf: "center",
+    marginTop: 25,
+    backgroundColor: "#e7eeffff",
   },
-  searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#fff",
-    borderRadius: 25,
-    borderWidth: 2,
-    borderColor: "#7b9ef6ff",
-    paddingHorizontal: 12,
-    height: 50,
-    marginTop: 10,
-    marginBottom: 5,
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
+  addBtnText: {
+    textAlign: "center",
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#1B457C",
   },
   box: {
     flexDirection: "row",
@@ -172,5 +223,11 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: "#8b8b8b",
     marginTop: 2,
+  },
+  emptyText: {
+    textAlign: "center",
+    fontSize: 16,
+    marginTop: 30,
+    color: "#777",
   },
 });

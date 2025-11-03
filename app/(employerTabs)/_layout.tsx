@@ -27,7 +27,7 @@ export default function EmployerTabLayout() {
       <Tabs.Screen
         name="job-status"
         options={{
-          title: "My Jobs",
+          title: "Job Management",
           tabBarIcon: ({ focused, color, size }) => (
             <Ionicons
               name={focused ? "briefcase" : "briefcase-outline"}

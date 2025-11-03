@@ -1,26 +1,25 @@
-import React, { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  TouchableOpacity,
-  ScrollView,
-  KeyboardAvoidingView,
-  Alert,
-  ActivityIndicator,
-} from "react-native";
 import { signOut } from "firebase/auth";
-import { auth, db } from "../../firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
-import { Education, Skill } from "../model/dataType";
+import React, { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { auth, db } from "../../firebaseConfig";
+import { Company } from "../model/dataType";
 
 export default function Profilepage() {
   const router = useRouter();
 
-  const [education, setEducation] = useState<Education | null>(null);
-  const [skill, setSkill] = useState<Skill | null>(null);
+  const [company, setCompany] = useState<Company | null>(null);
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [loading, setLoading] = useState(true);
@@ -46,19 +45,11 @@ export default function Profilepage() {
         setUserName(userData.username || "User");
         setUserEmail(userData.email || user.email || "");
 
-        if (userData.educationId) {
-          const eduRef = doc(db, "education", userData.educationId);
-          const eduSnap = await getDoc(eduRef);
-          if (eduSnap.exists()) {
-            setEducation(eduSnap.data() as Education);
-          }
-        }
-
-        if (userData.skillId) {
-          const skillRef = doc(db, "careerProfile", userData.skillId);
-          const skillSnap = await getDoc(skillRef);
-          if (skillSnap.exists()) {
-            setSkill(skillSnap.data() as Skill);
+        if (userData.company_id) {
+          const cmpRef = doc(db, "company", userData.company_id);
+          const cmpSnap = await getDoc(cmpRef);
+          if (cmpSnap.exists()) {
+            setCompany(cmpSnap.data() as Company);
           }
         }
       } catch (error) {
@@ -110,7 +101,7 @@ export default function Profilepage() {
           <Text style={styles.profileName}>{userName}</Text>
           <View style={styles.box}>
             {/*Education */}
-            <Text style={styles.firstheader}>Education</Text>
+            <Text style={styles.firstheader}>Company Information</Text>
             <View
               style={{
                 height: 2,
@@ -119,77 +110,16 @@ export default function Profilepage() {
                 marginVertical: 12,
               }}
             />
-            <Text style={styles.label}>School:</Text>
-            <Text style={styles.profileData}>{education?._university}</Text>
-            <Text style={styles.label}>Education Level:</Text>
-            <Text style={styles.profileData}>{education?._educationLevel}</Text>
-            <Text style={styles.label}>Field of study:</Text>
-            <Text style={styles.profileData}>{education?._fieldOfStudy}</Text>
-            <Text style={styles.label}>Academic Result:</Text>
+            <Text style={styles.label}>Industry Type:</Text>
+            <Text style={styles.profileData}>{company?._companyType}</Text>
+            <Text style={styles.label}>Company Location:</Text>
+            <Text style={styles.profileData}>{company?._companyLocation}</Text>
+            <Text style={styles.label}>Company Size:</Text>
+            <Text style={styles.profileData}>{company?._companySize}</Text>
+            <Text style={styles.label}>Company Description:</Text>
             <Text style={styles.profileData}>
-              CGPA {education?._academicResult}
+              {company?._companyDescription}
             </Text>
-
-            {/*Career Profile */}
-            <Text style={styles.subheader}>Skill</Text>
-            <View
-              style={{
-                height: 2,
-                backgroundColor: "#ccc",
-                width: "100%",
-                marginVertical: 12,
-              }}
-            />
-            <View style={styles.skillContainer}>
-              <Text style={styles.skillData}>Python AI programming</Text>
-              <Text style={styles.skillData}>PHP Programming</Text>
-              <Text style={styles.skillData}>AWS Cloud Service</Text>
-              <Text style={styles.skillData}>React Native</Text>
-              <Text style={styles.skillData}>Machine Learning</Text>
-            </View>
-
-            {/*Career History */}
-            <Text style={styles.subheader}>Career History</Text>
-            <View
-              style={{
-                height: 2,
-                backgroundColor: "#ccc",
-                width: "100%",
-                marginVertical: 12,
-              }}
-            />
-            <View style={styles.careerHisotryContainer}>
-              <View style={styles.careerHistoryBox}>
-                <Text style={styles.careerData}>
-                  Computer Technician Intern
-                </Text>
-                <Text style={styles.cmpName}>C.T. Technology Sdn.Bhd</Text>
-                <Text style={styles.duration}>Nov 2023 - Jan 2024</Text>
-              </View>
-              <View style={styles.careerHistoryBox}>
-                <Text style={styles.careerData}>
-                  Software Engineering Intern
-                </Text>
-                <Text style={styles.cmpName}>ABC Wtt Sdn. Bhd</Text>
-                <Text style={styles.duration}>Nov 2023 - Jan 2024</Text>
-              </View>
-            </View>
-
-            {/*Language */}
-            <Text style={styles.subheader}>Languages</Text>
-            <View
-              style={{
-                height: 2,
-                backgroundColor: "#ccc",
-                width: "100%",
-                marginVertical: 12,
-              }}
-            />
-            <View style={styles.languageContainer}>
-              <Text style={styles.language}>Bahasa Malaysia</Text>
-              <Text style={styles.language}>English</Text>
-              <Text style={styles.language}>Chinese - Mandarin</Text>
-            </View>
           </View>
           <TouchableOpacity style={styles.btnLogout} onPress={handleLogout}>
             <Text style={styles.btnText}>Sign out</Text>
