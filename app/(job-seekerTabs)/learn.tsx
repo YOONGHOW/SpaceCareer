@@ -1,10 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { collection, doc, onSnapshot } from "firebase/firestore";
+import { collection, doc, getDocs, onSnapshot } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Image,
   KeyboardAvoidingView,
+  Linking,
   ScrollView,
   StyleSheet,
   Text,
@@ -32,7 +34,8 @@ export default function LearningPage() {
     if (!user) return;
 
     const userRef = doc(db, "users", user.uid);
-    const unsubscribeUser = onSnapshot(userRef, (userSnap) => {
+
+    const unsubscribeUser = onSnapshot(userRef, async (userSnap) => {
       if (!userSnap.exists()) {
         setCourseRegisterList([]);
         setCertRegisterList([]);
@@ -44,76 +47,38 @@ export default function LearningPage() {
       const courseIds = userData.courseRegister_id || [];
       const certIds = userData.certRegister_id || [];
 
-      // List for Course Registrations
+      const courseSnap = await getDocs(collection(db, "courses"));
+      const courseMap = new Map<string, courses>();
+      courseSnap.forEach((doc) => courseMap.set(doc.id, doc.data() as courses));
 
-      const unsubCourseApplied = onSnapshot(
-        collection(db, "courseRegisted"),
-        (snapshot) => {
-          const appliedCourses = snapshot.docs
-            .filter((doc) => courseIds.includes(doc.id))
-            .map((doc) => ({
-              courseRegister_id: doc.id,
-              ...doc.data(),
-            })) as courseRegister[];
+      const courseRegSnap = await getDocs(collection(db, "courseRegisted"));
+      const courseRegs = courseRegSnap.docs
+        .filter((doc) => courseIds.includes(doc.id))
+        .map((doc) => ({
+          courseRegister_id: doc.id,
+          ...doc.data(),
+          courseDetails: courseMap.get((doc.data() as any).course_id),
+        })) as courseRegister[];
 
-          const unsubCourses = onSnapshot(
-            collection(db, "courses"),
-            (courseSnap) => {
-              const courseMap = new Map<string, courses>();
-              courseSnap.docs.forEach((doc) =>
-                courseMap.set(doc.id, doc.data() as courses)
-              );
-
-              const merged = appliedCourses.map((course) => ({
-                ...course,
-                courseDetails: courseMap.get(course.course_id),
-              }));
-
-              setCourseRegisterList(merged);
-            }
-          );
-
-          return () => unsubCourses();
-        }
+      const certSnap = await getDocs(collection(db, "certificate"));
+      const certMap = new Map<string, certificates>();
+      certSnap.forEach((doc) =>
+        certMap.set(doc.id, doc.data() as certificates)
       );
 
-      // List for Certificate Registrations
-      const unsubCertApplied = onSnapshot(
-        collection(db, "certRegisted"),
-        (snapshot) => {
-          const appliedCerts = snapshot.docs
-            .filter((doc) => certIds.includes(doc.id))
-            .map((doc) => ({
-              certRegisted_id: doc.id,
-              ...doc.data(),
-            })) as certRegister[];
+      // --- Fetch certificate registrations ---
+      const certRegSnap = await getDocs(collection(db, "certRegisted"));
+      const certRegs = certRegSnap.docs
+        .filter((doc) => certIds.includes(doc.id))
+        .map((doc) => ({
+          certRegisted_id: doc.id,
+          ...doc.data(),
+          certDetails: certMap.get((doc.data() as any).certId),
+        })) as certRegister[];
 
-          const unsubCerts = onSnapshot(
-            collection(db, "certificate"),
-            (certSnap) => {
-              const certMap = new Map<string, certificates>();
-              certSnap.docs.forEach((doc) =>
-                certMap.set(doc.id, doc.data() as certificates)
-              );
-
-              const merged = appliedCerts.map((cert) => ({
-                ...cert,
-                certDetails: certMap.get(cert.certId),
-              }));
-
-              setCertRegisterList(merged);
-              setLoading(false);
-            }
-          );
-
-          return () => unsubCerts();
-        }
-      );
-
-      return () => {
-        unsubCourseApplied();
-        unsubCertApplied();
-      };
+      setCourseRegisterList(courseRegs);
+      setCertRegisterList(certRegs);
+      setLoading(false);
     });
 
     return () => unsubscribeUser();
@@ -122,6 +87,7 @@ export default function LearningPage() {
   if (loading) {
     return (
       <View style={styles.center}>
+        <ActivityIndicator size="large" color="#7b9ef6ff" />
         <Text>Loading your learning data...</Text>
       </View>
     );
@@ -145,7 +111,7 @@ export default function LearningPage() {
           />
           <TouchableOpacity
             style={styles.btnNext}
-            onPress={() => router.push("/(tabs)/home")}
+            onPress={() => router.push("/(job-seekerTabs)/home")}
           >
             <Ionicons
               name="call"
@@ -166,16 +132,19 @@ export default function LearningPage() {
             <TouchableOpacity
               key={course.courseRegister_id}
               style={styles.course_box}
+              onPress={() =>
+                Linking.openURL(course.courseDetails?.course_link || "")
+              }
             >
               <View style={styles.textContainer}>
                 <Text style={styles.courseTitle}>
-                  {course.courseDetails?.course_name}
+                  {course.courseDetails?.course_title}
                 </Text>
                 <Text style={styles.courseProvider}>
                   {course.courseDetails?.company_name}
                 </Text>
                 <Text style={styles.achievementType}>
-                  {course.courseDetails?.course_type}
+                  {"Online Free Course"}
                 </Text>
                 <Text style={styles.rate}>
                   ⭐ 4.8 {"("}
@@ -188,7 +157,7 @@ export default function LearningPage() {
                 </Text>
               </View>
               <Image
-                source={require("../../assets/images/exploration.png")}
+                source={{ uri: course.courseDetails?.course_image }}
                 style={styles.companyLogo}
               />
             </TouchableOpacity>

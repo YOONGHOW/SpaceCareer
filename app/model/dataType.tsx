@@ -33,10 +33,11 @@ export interface jobs {
 }
 
 export interface courses {
+  course_title: string;
+  course_link: string;
+  course_image: string;
   course_id: string;
   company_name: string;
-  course_name: string;
-  course_type: string;
   review: number;
   course_description: string;
 }

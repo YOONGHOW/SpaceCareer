@@ -7,6 +7,7 @@ import {
   Alert,
   Image,
   KeyboardAvoidingView,
+  Linking,
   ScrollView,
   StyleSheet,
   Text,
@@ -16,14 +17,14 @@ import {
 import { auth, db } from "../../firebaseConfig";
 import { courses } from "../model/dataType";
 
-export default function Homepage() {
+export default function LearningInformation() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const [course, setCourse] = useState<courses | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchJob = async () => {
+    const fetchCourse = async () => {
       try {
         const docRef = doc(db, "courses", id as string);
         const docSnap = await getDoc(docRef);
@@ -31,13 +32,13 @@ export default function Homepage() {
           setCourse({ course_id: docSnap.id, ...docSnap.data() } as courses);
         }
       } catch (error) {
-        console.error("Error fetching job:", error);
+        console.error("Error fetching course:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    if (id) fetchJob();
+    if (id) fetchCourse();
   }, [id]);
 
   if (loading) {
@@ -51,18 +52,9 @@ export default function Homepage() {
   if (!course) {
     return (
       <View style={styles.center}>
-        <Text>Courses not found</Text>
+        <Text>Course not found.</Text>
       </View>
     );
-  }
-
-  {
-    /*Store register cert*/
-  }
-  const user = auth.currentUser;
-
-  if (!user) {
-    return;
   }
 
   const handleRegisterCourse = async () => {
@@ -72,14 +64,16 @@ export default function Homepage() {
         Alert.alert("Error", "User not logged in");
         return;
       }
+
       const courseRegisterID = "course_" + Date.now();
-      const courseStatus = "Registered";
       const newDocRef = doc(db, "courseRegisted", courseRegisterID);
       const data = {
         courseRegister_id: courseRegisterID,
         userId: user.uid,
         course_id: course.course_id,
-        courseStatus: courseStatus,
+        courseTitle: course.course_title || "",
+        courseLink: course.course_link || "",
+        courseStatus: "Registed",
         createdAt: new Date(),
       };
 
@@ -90,7 +84,7 @@ export default function Homepage() {
         courseRegister_id: courseRegisterID,
       });
 
-      Alert.alert("Success", "Course class register successfully!");
+      Alert.alert("Success", "Course registered successfully!");
       router.push("/learn");
     } catch (error: any) {
       console.error(error);
@@ -98,8 +92,19 @@ export default function Homepage() {
     }
   };
 
+  const handleOpenCourseLink = () => {
+    if (course.course_link) {
+      Linking.openURL(course.course_link);
+    } else {
+      Alert.alert(
+        "No link found",
+        "This course doesn't have an external link."
+      );
+    }
+  };
+
   return (
-    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: "#d9efffff" }}>
+    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: "#d9efff" }}>
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         keyboardShouldPersistTaps="handled"
@@ -112,46 +117,51 @@ export default function Homepage() {
           >
             <Ionicons name="arrow-back" size={24} color="black" />
           </TouchableOpacity>
+
           <View style={styles.titleContainer}>
             <Image
-              source={require("../../assets/images/logo.png")}
+              source={
+                course.course_image
+                  ? { uri: course.course_image }
+                  : require("../../assets/images/logo.png")
+              }
               style={styles.companyLogo}
             />
-            <Text style={styles.certTitle}>{course.course_name}</Text>
-            <Text style={styles.companyName}>{course.company_name}</Text>
+            <Text style={styles.courseTitle}>{course.course_title}</Text>
+            <Text style={styles.companyName}>
+              {course.company_name || "Coursera"}
+            </Text>
           </View>
-          <View
-            style={{
-              height: 2,
-              backgroundColor: "#ccc",
-              width: "100%",
-              marginVertical: 12,
-            }}
-          />
+
+          <View style={styles.divider} />
+
           <View style={styles.textContainer}>
             <Text style={styles.certType}>
               <Ionicons name="book" size={21} color="black" />
               {"  "}
-              {course.course_type}
+              {"Free Online Course"}
             </Text>
-            <View
-              style={{
-                height: 2,
-                backgroundColor: "#ccc",
-                width: "100%",
-                marginVertical: 12,
-              }}
-            />
-            <Text style={styles.subheading}>Certificate Info:</Text>
+
+            <View style={styles.divider} />
+
+            <Text style={styles.subheading}>Course Description:</Text>
             <Text style={styles.cert_description}>
-              {course.course_description}
+              {course.course_description || "No description available."}
             </Text>
           </View>
+
           <TouchableOpacity
             style={styles.btnApply}
             onPress={handleRegisterCourse}
           >
-            <Text style={styles.btnText}>Start</Text>
+            <Text style={styles.btnText}>Register</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.btnLearn}
+            onPress={handleOpenCourseLink}
+          >
+            <Text style={styles.btnText}>Go to Course</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -171,7 +181,6 @@ const styles = StyleSheet.create({
     padding: 10,
     paddingBottom: 100,
   },
-
   box: {
     width: "100%",
     padding: 15,
@@ -188,15 +197,13 @@ const styles = StyleSheet.create({
     width: 100,
     borderRadius: 50,
     borderWidth: 2,
-    borderColor: "#d0d0d0ff",
+    borderColor: "#d0d0d0",
     marginTop: 40,
   },
-
   titleContainer: {
     alignItems: "center",
     flex: 1,
   },
-
   textContainer: {
     flex: 1,
   },
@@ -205,12 +212,12 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#1B457C",
   },
-
-  certTitle: {
+  courseTitle: {
     fontSize: 18,
     fontWeight: "700",
     color: "#1B457C",
     marginTop: 10,
+    textAlign: "center",
   },
   companyName: {
     fontSize: 18,
@@ -221,7 +228,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: "#8b8b8b",
   },
-
   cert_description: {
     fontSize: 15,
     color: "#8b8b8b",
@@ -233,22 +239,32 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-
   btnApply: {
-    padding: 7,
-    borderWidth: 2,
-    borderColor: "#7b9ef6ff",
+    padding: 10,
     borderRadius: 25,
-    width: "60%",
+    width: "70%",
     alignSelf: "center",
-    marginTop: 30,
-    backgroundColor: "#e7eeffff",
+    marginTop: 20,
+    backgroundColor: "#7b9ef6",
   },
-
+  btnLearn: {
+    padding: 10,
+    borderRadius: 25,
+    width: "70%",
+    alignSelf: "center",
+    marginTop: 15,
+    backgroundColor: "#53b4adff",
+  },
   btnText: {
     textAlign: "center",
     fontSize: 18,
     fontWeight: "600",
-    color: "#1B457C",
+    color: "#fff",
+  },
+  divider: {
+    height: 2,
+    backgroundColor: "#ccc",
+    width: "100%",
+    marginVertical: 12,
   },
 });
