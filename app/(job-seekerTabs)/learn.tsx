@@ -111,7 +111,7 @@ export default function LearningPage() {
           />
           <TouchableOpacity
             style={styles.btnNext}
-            onPress={() => router.push("/(job-seekerTabs)/home")}
+            onPress={() => router.push("/job-seeker-page/interviewScreen")}
           >
             <Ionicons
               name="call"
@@ -124,9 +124,9 @@ export default function LearningPage() {
         </View>
 
         {/* Courses Section */}
-        <Text style={styles.subheader}>Registered Courses</Text>
+        <Text style={styles.subheader}>Registed Courses</Text>
         {courseRegisterList.length === 0 ? (
-          <Text style={styles.emptyText}>No registered courses found.</Text>
+          <Text style={styles.emptyText}>No registed courses found.</Text>
         ) : (
           courseRegisterList.map((course) => (
             <TouchableOpacity
@@ -140,15 +140,11 @@ export default function LearningPage() {
                 <Text style={styles.courseTitle}>
                   {course.courseDetails?.course_title}
                 </Text>
-                <Text style={styles.courseProvider}>
-                  {course.courseDetails?.company_name}
-                </Text>
-                <Text style={styles.achievementType}>
-                  {"Online Free Course"}
-                </Text>
+                <Text style={styles.courseProvider}>Coursera </Text>
+                <Text style={styles.achievementType}>Online Free Course</Text>
                 <Text style={styles.rate}>
                   ⭐ 4.8 {"("}
-                  {course.courseDetails?.review}
+                  {100}
                   {")"}
                 </Text>
                 <Text style={styles.status}>
@@ -165,7 +161,7 @@ export default function LearningPage() {
         )}
 
         {/* Certificates Section */}
-        <Text style={styles.subheader}>Registered Certificates</Text>
+        <Text style={styles.subheader}>Registed Certificates</Text>
         {certRegisterList.length === 0 ? (
           <Text style={styles.emptyText}>
             No registered certificates found.
@@ -262,7 +258,7 @@ const styles = StyleSheet.create({
   },
   subheader: {
     color: "#90a5f9ff",
-    fontSize: 23,
+    fontSize: 21,
     fontWeight: "700",
     marginBottom: 6,
     marginTop: 10,

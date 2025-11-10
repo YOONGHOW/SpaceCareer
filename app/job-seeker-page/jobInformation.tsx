@@ -57,15 +57,6 @@ export default function Homepage() {
     );
   }
 
-  {
-    /*Store register cert*/
-  }
-  const user = auth.currentUser;
-
-  if (!user) {
-    return;
-  }
-
   const handleJobApplied = async () => {
     try {
       const appliedJobStatus = "Received";
@@ -279,16 +270,16 @@ const styles = StyleSheet.create({
   applyButton: {
     padding: 7,
     borderWidth: 2,
-    borderColor: "#7b9ef6ff",
+    borderColor: "#b5caffff",
     borderRadius: 25,
     width: "60%",
     alignSelf: "center",
     marginTop: 30,
-    backgroundColor: "#e7eeffff",
+    backgroundColor: "#c1d2faff",
   },
 
   disabledButton: {
-    backgroundColor: "#389bfdff",
+    backgroundColor: "#bbddffff",
   },
 
   btnText: {

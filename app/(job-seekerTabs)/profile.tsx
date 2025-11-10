@@ -1,19 +1,20 @@
-import React, { useEffect, useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  TouchableOpacity,
-  ScrollView,
-  KeyboardAvoidingView,
-  Alert,
-  ActivityIndicator,
-} from "react-native";
 import { signOut } from "firebase/auth";
-import { auth, db } from "../../firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
+import React, { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { auth, db } from "../../firebaseConfig";
 import { Education, Skill } from "../model/dataType";
 
 export default function Profilepage() {
@@ -21,6 +22,7 @@ export default function Profilepage() {
 
   const [education, setEducation] = useState<Education | null>(null);
   const [skill, setSkill] = useState<Skill | null>(null);
+  const [language, setLanguage] = useState<any>(null);
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [loading, setLoading] = useState(true);
@@ -59,6 +61,14 @@ export default function Profilepage() {
           const skillSnap = await getDoc(skillRef);
           if (skillSnap.exists()) {
             setSkill(skillSnap.data() as Skill);
+          }
+        }
+
+        if (userData.language_id) {
+          const languageRef = doc(db, "language", userData.language_id);
+          const languageSnap = await getDoc(languageRef);
+          if (languageSnap.exists()) {
+            setLanguage(languageSnap.data());
           }
         }
       } catch (error) {
@@ -110,7 +120,15 @@ export default function Profilepage() {
           <Text style={styles.profileName}>{userName}</Text>
           <View style={styles.box}>
             {/*Education */}
-            <Text style={styles.firstheader}>Education</Text>
+            <View style={styles.subHeaderContainer}>
+              <Text style={styles.subheader}>Education</Text>
+              <TouchableOpacity
+                style={styles.editBtn}
+                onPress={() => router.back()}
+              >
+                <Ionicons name="pencil" size={21} color="black" />
+              </TouchableOpacity>
+            </View>
             <View
               style={{
                 height: 2,
@@ -129,9 +147,16 @@ export default function Profilepage() {
             <Text style={styles.profileData}>
               CGPA {education?._academicResult}
             </Text>
-
             {/*Career Profile */}
-            <Text style={styles.subheader}>Skill</Text>
+            <View style={styles.subHeaderContainer}>
+              <Text style={styles.subheader}>Skill</Text>
+              <TouchableOpacity
+                style={styles.editBtn}
+                onPress={() => router.back()}
+              >
+                <Ionicons name="pencil" size={21} color="black" />
+              </TouchableOpacity>
+            </View>
             <View
               style={{
                 height: 2,
@@ -147,9 +172,18 @@ export default function Profilepage() {
               <Text style={styles.skillData}>React Native</Text>
               <Text style={styles.skillData}>Machine Learning</Text>
             </View>
-
             {/*Career History */}
-            <Text style={styles.subheader}>Career History</Text>
+            <View style={styles.subHeaderContainer}>
+              <Text style={styles.subheader}>Career History</Text>
+              <TouchableOpacity
+                style={styles.editBtn}
+                onPress={() =>
+                  router.replace("/job-seeker-page/editCareerHistory")
+                }
+              >
+                <Ionicons name="pencil" size={21} color="black" />
+              </TouchableOpacity>
+            </View>
             <View
               style={{
                 height: 2,
@@ -174,9 +208,16 @@ export default function Profilepage() {
                 <Text style={styles.duration}>Nov 2023 - Jan 2024</Text>
               </View>
             </View>
-
             {/*Language */}
-            <Text style={styles.subheader}>Languages</Text>
+            <View style={styles.subHeaderContainer}>
+              <Text style={styles.subheader}>Languages</Text>
+              <TouchableOpacity
+                style={styles.editBtn}
+                onPress={() => router.replace("/job-seeker-page/editLanguage")}
+              >
+                <Ionicons name="pencil" size={21} color="black" />
+              </TouchableOpacity>
+            </View>
             <View
               style={{
                 height: 2,
@@ -186,9 +227,21 @@ export default function Profilepage() {
               }}
             />
             <View style={styles.languageContainer}>
-              <Text style={styles.language}>Bahasa Malaysia</Text>
-              <Text style={styles.language}>English</Text>
-              <Text style={styles.language}>Chinese - Mandarin</Text>
+              {language ? (
+                <>
+                  {language.language_1 ? (
+                    <Text style={styles.language}>{language.language_1}</Text>
+                  ) : null}
+                  {language.language_2 ? (
+                    <Text style={styles.language}>{language.language_2}</Text>
+                  ) : null}
+                  {language.language_3 ? (
+                    <Text style={styles.language}>{language.language_3}</Text>
+                  ) : null}
+                </>
+              ) : (
+                <Text style={{ color: "#666" }}>No languages added yet</Text>
+              )}
             </View>
           </View>
           <TouchableOpacity style={styles.btnLogout} onPress={handleLogout}>
@@ -250,20 +303,26 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   // Profile data
-  firstheader: {
-    fontSize: 21,
-    fontWeight: "bold",
-    color: "#003bb1ff",
-    marginTop: 10,
-    textAlign: "center",
+
+  subHeaderContainer: {
+    marginTop: 30,
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
   },
 
   subheader: {
     fontSize: 21,
     fontWeight: "bold",
     color: "#003bb1ff",
-    marginTop: 30,
-    textAlign: "center",
+  },
+
+  editBtn: {
+    position: "absolute",
+    right: 0,
+    top: "50%",
+    transform: [{ translateY: -10 }],
+    paddingHorizontal: 10,
   },
 
   label: {

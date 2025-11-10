@@ -22,6 +22,7 @@ export default function LearningInformation() {
   const { id } = useLocalSearchParams();
   const [course, setCourse] = useState<courses | null>(null);
   const [loading, setLoading] = useState(true);
+  const [alreadyRegister, setAlreadyRegister] = useState(false);
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -67,6 +68,7 @@ export default function LearningInformation() {
 
       const courseRegisterID = "course_" + Date.now();
       const newDocRef = doc(db, "courseRegisted", courseRegisterID);
+
       const data = {
         courseRegister_id: courseRegisterID,
         userId: user.uid,
@@ -80,6 +82,18 @@ export default function LearningInformation() {
       await setDoc(newDocRef, data);
 
       const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+      if (!userSnap.exists()) {
+        Alert.alert("Error", "User data not found");
+        return;
+      }
+      const userData = userSnap.data() || {};
+      const alreadRegister = (userData.courseRegister_id || []) as string[];
+
+      if (alreadRegister) {
+        setAlreadyRegister(true);
+        return;
+      }
       await updateDoc(userRef, {
         courseRegister_id: courseRegisterID,
       });
@@ -96,10 +110,7 @@ export default function LearningInformation() {
     if (course.course_link) {
       Linking.openURL(course.course_link);
     } else {
-      Alert.alert(
-        "No link found",
-        "This course doesn't have an external link."
-      );
+      Alert.alert("No link found");
     }
   };
 
@@ -151,10 +162,16 @@ export default function LearningInformation() {
           </View>
 
           <TouchableOpacity
-            style={styles.btnApply}
+            style={[
+              styles.btnApply,
+              alreadyRegister ? styles.disabledButton : styles.btnApply,
+            ]}
             onPress={handleRegisterCourse}
+            disabled={alreadyRegister}
           >
-            <Text style={styles.btnText}>Register</Text>
+            <Text style={styles.btnText}>
+              {alreadyRegister ? "Already Registed" : "Register"}
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -200,6 +217,11 @@ const styles = StyleSheet.create({
     borderColor: "#d0d0d0",
     marginTop: 40,
   },
+
+  disabledButton: {
+    backgroundColor: "#bbddffff",
+  },
+
   titleContainer: {
     alignItems: "center",
     flex: 1,
