@@ -42,15 +42,6 @@ export interface courses {
   course_description: string;
 }
 
-export interface certificates {
-  cert_id: string;
-  company_name: string;
-  cert_name: string;
-  cert_type: string;
-  cert_description: string;
-  review: number;
-}
-
 export interface jobApplied {
   jobApplied_id: string;
   jobId: string;
@@ -59,13 +50,6 @@ export interface jobApplied {
   jobDetails?: jobs;
 }
 
-export interface certRegister {
-  certId: string;
-  certRegisted_id: string;
-  userId: string;
-  certDetails?: certificates;
-  certStatus: string;
-}
 export interface courseRegister {
   course_id: string;
   courseRegister_id: string;
