@@ -5,14 +5,7 @@ import { useRouter } from "expo-router";
 import * as Speech from "expo-speech";
 import LottieView from "lottie-react-native";
 import React, { useRef, useState } from "react";
-import {
-  Alert,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 const QUESTIONS = [
   {
@@ -100,24 +93,21 @@ export default function MockInterviewScreen() {
     setVoiceError(null);
     setIsRecording(false);
     setIsTranscribing(false);
-    speak("Hi, I am your virtual HR. Let's start the mock interview.");
-    setTimeout(() => speak(currentQuestion.text), 1200);
+    speak("Hi, I am your interviewer. Let's start the mock interview.");
+    setTimeout(() => speak(currentQuestion.text), 5250);
   };
 
-  const handleNext = () => {
-    if (isRecording) {
-      stopRecordingAndTranscribe();
-      return;
-    }
+  const saveAnswerAndGoNext = (answerOverride?: string) => {
+    const answerToUse = (answerOverride ?? currentAnswer).trim();
 
-    const trimmed = currentAnswer.trim();
-    if (!trimmed) {
+    if (!answerToUse) {
       speak("Please say something for your answer.");
       return;
     }
 
+    // Save this answer
     const updated = [...allAnswers];
-    updated[currentIndex] = trimmed;
+    updated[currentIndex] = answerToUse;
     setAllAnswers(updated);
     setCurrentAnswer("");
     setVoiceError(null);
@@ -125,15 +115,25 @@ export default function MockInterviewScreen() {
     const nextIndex = currentIndex + 1;
 
     if (nextIndex < QUESTIONS.length) {
+      // Go to next question
       setCurrentIndex(nextIndex);
       speak("Okay, thank you. Next question.");
-      setTimeout(() => speak(QUESTIONS[nextIndex].text), 1200);
+      setTimeout(() => speak(QUESTIONS[nextIndex].text), 1400);
     } else {
+      // Finished all questions → calculate scores
       const result = calculateScores(updated);
       setScores(result);
       setStage("result");
       speak("Thank you. The interview is finished. Here is your score.");
     }
+  };
+
+  const handleNext = () => {
+    if (isRecording) {
+      stopRecordingAndTranscribe();
+      return;
+    }
+    saveAnswerAndGoNext();
   };
 
   const handleReplayQuestion = () => {
@@ -222,6 +222,7 @@ export default function MockInterviewScreen() {
             data.raw.results[0].alternatives[0].transcript) ||
           "";
         setCurrentAnswer(transcript);
+        saveAnswerAndGoNext(transcript);
       }
     } catch (e) {
       console.error("stopRecordingAndTranscribe error:", e);
@@ -252,12 +253,12 @@ export default function MockInterviewScreen() {
         source={require("../../assets/avatar.json")}
         autoPlay
         loop
-        style={{ width: 500, height: 500, marginTop: "-20%" }}
+        style={{ width: 600, height: 600, marginTop: "-20%" }}
       />
 
       {stage === "intro" && (
         <View style={styles.card}>
-          <Text style={styles.title}>Mock HR Interview</Text>
+          <Text style={styles.title}>Mrs Rachel Yeoh</Text>
           <Text style={styles.subtitle}>
             Your virtual HR avatar will ask you a few questions. Answer them as
             if this is a real interview.
@@ -271,32 +272,12 @@ export default function MockInterviewScreen() {
 
       {stage === "question" && (
         <View style={styles.card}>
-          <Text style={styles.questionLabel}>
-            Question {currentIndex + 1} of {QUESTIONS.length}
-          </Text>
-          <Text style={styles.questionText}>{currentQuestion.text}</Text>
-
           <TouchableOpacity
             style={[styles.smallButton, { marginTop: 8 }]}
             onPress={handleReplayQuestion}
           >
-            <Text style={styles.smallButtonText}>🔊 Hear Question Again</Text>
+            <Text style={styles.smallButtonText}>Hear Question Again</Text>
           </TouchableOpacity>
-
-          <Text style={styles.inputLabel}>Your Answer (via Voice)</Text>
-
-          <ScrollView
-            style={styles.answerBox}
-            contentContainerStyle={styles.answerBoxContent}
-          >
-            <Text style={styles.textInput}>
-              {isRecording && !currentAnswer
-                ? "Listening..."
-                : isTranscribing
-                ? "Transcribing..."
-                : currentAnswer || "Press the mic to speak..."}
-            </Text>
-          </ScrollView>
 
           <TouchableOpacity
             style={[styles.micButton, isRecording && styles.micButtonRecording]}
@@ -311,14 +292,6 @@ export default function MockInterviewScreen() {
           </TouchableOpacity>
 
           {voiceError && <Text style={styles.errorText}>{voiceError}</Text>}
-
-          <TouchableOpacity style={styles.button} onPress={handleNext}>
-            <Text style={styles.buttonText}>
-              {currentIndex === QUESTIONS.length - 1
-                ? "Finish Interview"
-                : "Next Question"}
-            </Text>
-          </TouchableOpacity>
         </View>
       )}
 
@@ -344,8 +317,11 @@ export default function MockInterviewScreen() {
             keywords. Later you can replace it with real NLP / ML.
           </Text>
 
-          <TouchableOpacity style={styles.button} onPress={handleStart}>
-            <Text style={styles.buttonText}>Try Again</Text>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => router.push("/(job-seekerTabs)/learn")}
+          >
+            <Text style={styles.buttonText}>Finish</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -407,11 +383,8 @@ const styles = StyleSheet.create({
   card: {
     width: "100%",
     maxWidth: 420,
-    backgroundColor: "#fff",
-    borderRadius: 20,
     padding: 16,
-    elevation: 4,
-    marginTop: -60,
+    marginTop: "-30%",
   },
   title: {
     fontSize: 22,
@@ -424,39 +397,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#555",
     marginVertical: 8,
-  },
-  questionLabel: {
-    fontSize: 14,
-    color: "#888",
-    marginBottom: 4,
-  },
-  questionText: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 8,
-  },
-  inputLabel: {
-    fontSize: 14,
-    marginTop: 12,
-    marginBottom: 4,
-    color: "#555",
-  },
-  answerBox: {
-    maxHeight: 150,
-    minHeight: 80,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 12,
-  },
-  answerBoxContent: {
-    flexGrow: 1,
-    justifyContent: "center",
-  },
-  textInput: {
-    fontSize: 14,
-    color: "#333",
   },
   button: {
     backgroundColor: "#4C6FFF",
@@ -471,8 +411,8 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   smallButton: {
-    alignSelf: "flex-start",
-    paddingVertical: 4,
+    alignSelf: "center",
+    paddingVertical: 10,
     paddingHorizontal: 10,
     borderRadius: 16,
     backgroundColor: "#eef1ff",

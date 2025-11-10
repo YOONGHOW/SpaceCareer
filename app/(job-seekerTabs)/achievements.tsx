@@ -14,26 +14,14 @@ import {
   View,
 } from "react-native";
 import { db } from "../../firebaseConfig";
-import { certificates, courses } from "../model/dataType";
+import { courses } from "../model/dataType";
 
 export default function Homepage() {
   const router = useRouter();
-  const [certificatesList, setCertList] = useState<certificates[]>([]);
   const [courseList, setCourseList] = useState<courses[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribeCert = onSnapshot(
-      collection(db, "certificate"),
-      (snapshot) => {
-        const certData = snapshot.docs.map((doc) => ({
-          cert_id: doc.id,
-          ...doc.data(),
-        })) as certificates[];
-        setCertList(certData);
-      }
-    );
-
     const unsubscribe = onSnapshot(collection(db, "courses"), (snapshot) => {
       const coursesData = snapshot.docs.map((doc) => ({
         course_id: doc.id,
@@ -44,7 +32,6 @@ export default function Homepage() {
     });
 
     return () => {
-      unsubscribeCert();
       unsubscribe();
     };
   }, []);
@@ -82,34 +69,10 @@ export default function Homepage() {
           />
         </View>
 
-        {/* Certificates Section */}
-        <Text style={styles.subheader}>Recommended Certificate</Text>
-        {certificatesList.map((item) => (
-          <TouchableOpacity
-            key={item.cert_id}
-            style={styles.box}
-            onPress={() =>
-              router.push({
-                pathname: "../job-seeker-page/certInformation",
-                params: { id: item.cert_id },
-              })
-            }
-          >
-            <View style={styles.textContainer}>
-              <Text style={styles.courseTitle}>{item.cert_name}</Text>
-              <Text style={styles.courseProvider}>{item.company_name}</Text>
-              <Text style={styles.achievementType}>{item.cert_type}</Text>
-              <Text style={styles.rate}>⭐ 4.8 ({item.review}k)</Text>
-            </View>
-            <Image
-              source={require("../../assets/images/exploration.png")}
-              style={styles.companyLogo}
-            />
-          </TouchableOpacity>
-        ))}
-
         {/* Courses Section */}
-        <Text style={styles.subheader}>Recommended Courses</Text>
+        <Text style={styles.subheader}>
+          Recommended Courses and Certificates
+        </Text>
         {courseList.map((course) => (
           <TouchableOpacity
             key={course.course_id}
@@ -164,7 +127,7 @@ const styles = StyleSheet.create({
   },
   subheader: {
     color: "#90a5f9ff",
-    fontSize: 21,
+    fontSize: 19,
     fontWeight: "700",
     marginBottom: 6,
     marginTop: 10,

@@ -14,19 +14,13 @@ import {
   View,
 } from "react-native";
 import { auth, db } from "../../firebaseConfig";
-import {
-  certificates,
-  certRegister,
-  courseRegister,
-  courses,
-} from "../model/dataType";
+import { courseRegister, courses } from "../model/dataType";
 
 export default function LearningPage() {
   const router = useRouter();
   const [courseRegisterList, setCourseRegisterList] = useState<
     courseRegister[]
   >([]);
-  const [certRegisterList, setCertRegisterList] = useState<certRegister[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -38,14 +32,12 @@ export default function LearningPage() {
     const unsubscribeUser = onSnapshot(userRef, async (userSnap) => {
       if (!userSnap.exists()) {
         setCourseRegisterList([]);
-        setCertRegisterList([]);
         setLoading(false);
         return;
       }
 
       const userData = userSnap.data();
       const courseIds = userData.courseRegister_id || [];
-      const certIds = userData.certRegister_id || [];
 
       const courseSnap = await getDocs(collection(db, "courses"));
       const courseMap = new Map<string, courses>();
@@ -60,24 +52,7 @@ export default function LearningPage() {
           courseDetails: courseMap.get((doc.data() as any).course_id),
         })) as courseRegister[];
 
-      const certSnap = await getDocs(collection(db, "certificate"));
-      const certMap = new Map<string, certificates>();
-      certSnap.forEach((doc) =>
-        certMap.set(doc.id, doc.data() as certificates)
-      );
-
-      // --- Fetch certificate registrations ---
-      const certRegSnap = await getDocs(collection(db, "certRegisted"));
-      const certRegs = certRegSnap.docs
-        .filter((doc) => certIds.includes(doc.id))
-        .map((doc) => ({
-          certRegisted_id: doc.id,
-          ...doc.data(),
-          certDetails: certMap.get((doc.data() as any).certId),
-        })) as certRegister[];
-
       setCourseRegisterList(courseRegs);
-      setCertRegisterList(certRegs);
       setLoading(false);
     });
 
@@ -124,7 +99,7 @@ export default function LearningPage() {
         </View>
 
         {/* Courses Section */}
-        <Text style={styles.subheader}>Registed Courses</Text>
+        <Text style={styles.subheader}>Registed Courses and Certificate</Text>
         {courseRegisterList.length === 0 ? (
           <Text style={styles.emptyText}>No registed courses found.</Text>
         ) : (
@@ -154,46 +129,6 @@ export default function LearningPage() {
               </View>
               <Image
                 source={{ uri: course.courseDetails?.course_image }}
-                style={styles.companyLogo}
-              />
-            </TouchableOpacity>
-          ))
-        )}
-
-        {/* Certificates Section */}
-        <Text style={styles.subheader}>Registed Certificates</Text>
-        {certRegisterList.length === 0 ? (
-          <Text style={styles.emptyText}>
-            No registered certificates found.
-          </Text>
-        ) : (
-          certRegisterList.map((cert) => (
-            <TouchableOpacity
-              key={cert.certRegisted_id}
-              style={styles.course_box}
-            >
-              <View style={styles.textContainer}>
-                <Text style={styles.courseTitle}>
-                  {cert.certDetails?.cert_name}
-                </Text>
-                <Text style={styles.courseProvider}>
-                  {cert.certDetails?.company_name}
-                </Text>
-                <Text style={styles.achievementType}>
-                  {cert.certDetails?.cert_type}
-                </Text>
-                <Text style={styles.rate}>
-                  ⭐ 4.8 {"("}
-                  {cert.certDetails?.review}
-                  {")"}
-                </Text>
-                <Text style={styles.status}>
-                  Status:{" "}
-                  <Text style={styles.statusChange}>{cert.certStatus}</Text>
-                </Text>
-              </View>
-              <Image
-                source={require("../../assets/images/exploration.png")}
                 style={styles.companyLogo}
               />
             </TouchableOpacity>
@@ -258,7 +193,7 @@ const styles = StyleSheet.create({
   },
   subheader: {
     color: "#90a5f9ff",
-    fontSize: 21,
+    fontSize: 19,
     fontWeight: "700",
     marginBottom: 6,
     marginTop: 10,
