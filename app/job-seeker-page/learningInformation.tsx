@@ -99,7 +99,7 @@ export default function LearningInformation() {
       });
 
       Alert.alert("Success", "Course registered successfully!");
-      router.push("/learn");
+      router.push("/(job-seekerTabs)/learn");
     } catch (error: any) {
       console.error(error);
       Alert.alert("Error", error.message);

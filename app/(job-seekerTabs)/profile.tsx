@@ -137,16 +137,30 @@ export default function Profilepage() {
                 marginVertical: 12,
               }}
             />
-            <Text style={styles.label}>School:</Text>
-            <Text style={styles.profileData}>{education?._university}</Text>
-            <Text style={styles.label}>Education Level:</Text>
-            <Text style={styles.profileData}>{education?._educationLevel}</Text>
-            <Text style={styles.label}>Field of study:</Text>
-            <Text style={styles.profileData}>{education?._fieldOfStudy}</Text>
-            <Text style={styles.label}>Academic Result:</Text>
-            <Text style={styles.profileData}>
-              CGPA {education?._academicResult}
-            </Text>
+            {education ? (
+              <>
+                <Text style={styles.label}>School:</Text>
+                <Text style={styles.profileData}>{education?._university}</Text>
+                <Text style={styles.label}>Education Level:</Text>
+                <Text style={styles.profileData}>
+                  {education?._educationLevel}
+                </Text>
+                <Text style={styles.label}>Field of study:</Text>
+                <Text style={styles.profileData}>
+                  {education?._fieldOfStudy}
+                </Text>
+                <Text style={styles.label}>Academic Result:</Text>
+                <Text style={styles.profileData}>
+                  CGPA {education?._academicResult}
+                </Text>
+              </>
+            ) : (
+              <Text
+                style={{ color: "#666", textAlign: "center", fontSize: 16 }}
+              >
+                No education background added
+              </Text>
+            )}
             {/*Career Profile */}
             <View style={styles.subHeaderContainer}>
               <Text style={styles.subheader}>Skill</Text>
@@ -240,7 +254,11 @@ export default function Profilepage() {
                   ) : null}
                 </>
               ) : (
-                <Text style={{ color: "#666" }}>No languages added yet</Text>
+                <Text
+                  style={{ color: "#666", textAlign: "center", fontSize: 16 }}
+                >
+                  No languages added
+                </Text>
               )}
             </View>
           </View>

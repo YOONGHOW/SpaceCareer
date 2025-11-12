@@ -37,10 +37,10 @@ export default function EducationSetup() {
       const data = {
         id: newDocRef.id,
         userId: user.uid,
-        _university,
-        _educationLevel,
-        _fieldOfStudy,
-        _academicResult,
+        university: _university || null,
+        education_level: _educationLevel || null,
+        field_of_study: _fieldOfStudy || null,
+        academic_result: _academicResult || null,
         createdAt: new Date(),
       };
 
@@ -52,7 +52,7 @@ export default function EducationSetup() {
       });
 
       Alert.alert("Success", "Education added successfully!");
-      router.push("../careerProfile");
+      router.push("/job-seeker-page/careerProfile");
     } catch (error: any) {
       console.error(error);
       Alert.alert("Error", error.message);
@@ -127,6 +127,12 @@ export default function EducationSetup() {
           <TouchableOpacity style={styles.btnNext} onPress={handleAddEducation}>
             <Text style={styles.btnText}>Next</Text>
           </TouchableOpacity>
+          <Text
+            style={styles.skipText}
+            onPress={() => router.push("/job-seeker-page/careerProfile")}
+          >
+            Skip
+          </Text>
         </View>
       </View>
     </SafeAreaView>
@@ -134,6 +140,13 @@ export default function EducationSetup() {
 }
 
 const styles = StyleSheet.create({
+  skipText: {
+    textDecorationLine: "underline",
+    textAlign: "center",
+    marginTop: 20,
+    fontSize: 15,
+    color: "#4a59ffff",
+  },
   container: {
     padding: 24,
     flex: 1,

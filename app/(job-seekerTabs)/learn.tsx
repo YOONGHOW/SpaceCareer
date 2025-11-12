@@ -99,9 +99,21 @@ export default function LearningPage() {
         </View>
 
         {/* Courses Section */}
-        <Text style={styles.subheader}>Registed Courses and Certificate</Text>
+        <Text style={styles.subheader}>Registed Courses & Certificate</Text>
         {courseRegisterList.length === 0 ? (
-          <Text style={styles.emptyText}>No registed courses found.</Text>
+          <View>
+            <Text style={styles.emptyText}>
+              ** No courses & certificates found **
+            </Text>
+            <TouchableOpacity
+              style={styles.navButton}
+              onPress={() => router.push("/(job-seekerTabs)/achievements")}
+            >
+              <Text style={styles.navButtonText}>
+                Add Courses & Certificates
+              </Text>
+            </TouchableOpacity>
+          </View>
         ) : (
           courseRegisterList.map((course) => (
             <TouchableOpacity
@@ -171,6 +183,23 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     backgroundColor: "#dae4fdff",
   },
+
+  navButton: {
+    padding: 8,
+    borderWidth: 2,
+    borderColor: "#7b9ef6ff",
+    borderRadius: 20,
+    alignSelf: "center",
+    backgroundColor: "#ffffffff",
+    marginTop: "5%",
+  },
+  navButtonText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#1B457C",
+    textAlign: "center",
+  },
+
   btnNext: {
     flexDirection: "row",
     alignItems: "center",

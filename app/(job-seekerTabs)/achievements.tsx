@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { collection, onSnapshot } from "firebase/firestore";
+import LottieView from "lottie-react-native";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -52,8 +53,15 @@ export default function Homepage() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.headerTitle}>Learning & Achievements</Text>
-
+        <View style={styles.animationbox}>
+          <LottieView
+            source={require("../../assets/education.json")}
+            autoPlay
+            loop
+            style={{ width: 125, height: 125 }}
+          />
+          <Text style={styles.headerTitle}>Achievements</Text>
+        </View>
         {/* Search Bar */}
         <View style={styles.searchContainer}>
           <Ionicons
@@ -68,11 +76,13 @@ export default function Homepage() {
             placeholderTextColor="#999"
           />
         </View>
-
         {/* Courses Section */}
-        <Text style={styles.subheader}>
-          Recommended Courses and Certificates
+        <Text style={styles.subheader}>Recommended Courses & Certificates</Text>
+
+        <Text style={styles.emptyText}>
+          ** Please complete your profile firsts **
         </Text>
+        <Text style={styles.subheader}>Other courses & certificates</Text>
         {courseList.map((course) => (
           <TouchableOpacity
             key={course.course_id}
@@ -111,7 +121,6 @@ export default function Homepage() {
   );
 }
 
-// Keep your styles unchanged
 const styles = StyleSheet.create({
   scrollContainer: {
     marginTop: 50,
@@ -119,28 +128,32 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   headerTitle: {
-    color: "#8c92aaff",
-    fontSize: 24,
+    color: "#7a7f92ff",
+    fontSize: 23,
     fontWeight: "700",
-    textAlign: "center",
-    marginBottom: 6,
+    marginLeft: 15,
   },
   subheader: {
     color: "#90a5f9ff",
-    fontSize: 19,
+    fontSize: 18,
     fontWeight: "700",
-    marginBottom: 6,
+    marginBottom: 8,
     marginTop: 10,
+  },
+  emptyText: {
+    textAlign: "center",
+    color: "#888",
+    marginTop: 10,
+    fontSize: 16,
   },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#fff",
-    borderRadius: 25,
+    borderRadius: 20,
     borderWidth: 2,
-    borderColor: "#7b9ef6ff",
+    borderColor: "#aec5ffff",
     paddingHorizontal: 12,
-    height: 50,
     marginTop: 10,
   },
   searchIcon: {
@@ -148,7 +161,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 15,
   },
   box: {
     flexDirection: "row",
@@ -159,6 +172,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     elevation: 4,
     marginTop: 6,
+  },
+
+  animationbox: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+    borderRadius: 10,
+    backgroundColor: "#e6f1ffff",
+    marginBottom: "2%",
   },
   companyLogo: {
     height: 65,

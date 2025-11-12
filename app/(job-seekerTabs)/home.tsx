@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { collection, onSnapshot } from "firebase/firestore";
+import LottieView from "lottie-react-native";
 import React, { useEffect, useState } from "react";
 import {
   Image,
@@ -38,68 +39,106 @@ export default function Homepage() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.headerTitle}>Recommended Careers</Text>
-        <View style={styles.searchContainer}>
-          <Ionicons
-            name="search"
-            size={20}
-            color="#777"
-            style={styles.searchIcon}
-          />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Career search"
-            placeholderTextColor="#999"
-          />
+        <View style={styles.headContainer}>
+          <View style={styles.animationbox}>
+            <LottieView
+              source={require("../../assets/welcome.json")}
+              autoPlay
+              loop
+              style={{ width: 130, height: 130 }}
+            />
+            <Text style={styles.headerTitle}>Careers</Text>
+          </View>
         </View>
 
-        {jobList.map((item) => (
-          <TouchableOpacity
-            key={item.job_id}
-            style={styles.box}
-            onPress={() =>
-              router.push({
-                pathname: "../job-seeker-page/jobInformation",
-                params: { id: item.job_id },
-              })
-            }
-          >
-            <Image
-              source={require("../../assets/images/logo.png")}
-              style={styles.companyLogo}
+        <View style={styles.container}>
+          <View style={styles.searchContainer}>
+            <Ionicons
+              name="search"
+              size={20}
+              color="#777"
+              style={styles.searchIcon}
             />
-            <View style={styles.textContainer}>
-              <Text style={styles.jobTitle}>{item.job_name}</Text>
-              <Text style={styles.companyName}>{item.company_name}</Text>
-              <Text style={styles.jobType}>{item.job_type}</Text>
-              <Text style={styles.location}>{item.job_location}</Text>
-              <Text style={styles.salary}>RM{item.job_salary}</Text>
-            </View>
-          </TouchableOpacity>
-        ))}
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Career search"
+              placeholderTextColor="#999"
+            />
+          </View>
+          <Text style={styles.subheader}>Recommended Careers</Text>
+          <Text
+            style={{ color: "#a69d9dff", textAlign: "center", fontSize: 16 }}
+          >
+            **Complete your profile first**
+          </Text>
+          <Text style={styles.subheader}>Other career</Text>
+          {jobList.map((item) => (
+            <TouchableOpacity
+              key={item.job_id}
+              style={styles.box}
+              onPress={() =>
+                router.push({
+                  pathname: "../job-seeker-page/jobInformation",
+                  params: { id: item.job_id },
+                })
+              }
+            >
+              <Image
+                source={require("../../assets/images/logo.png")}
+                style={styles.companyLogo}
+              />
+              <View style={styles.textContainer}>
+                <Text style={styles.jobTitle}>{item.job_name}</Text>
+                <Text style={styles.companyName}>{item.company_name}</Text>
+                <Text style={styles.jobType}>{item.job_type}</Text>
+                <Text style={styles.location}>{item.job_location}</Text>
+                <Text style={styles.salary}>RM{item.job_salary}</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollContainer: {
+  scrollContainer: { paddingBottom: 100 },
+
+  headContainer: {
     marginTop: 50,
-    padding: 10,
-    paddingBottom: 100,
+    padding: 15,
+  },
+  container: {
+    paddingLeft: 10,
+    paddingRight: 10,
+  },
+
+  animationbox: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+    borderRadius: 10,
+    backgroundColor: "#e6f1ffff",
   },
   headerTitle: {
-    color: "#8c92aaff",
-    fontSize: 24,
+    color: "#7a7f92ff",
+    fontSize: 23,
     fontWeight: "700",
-    textAlign: "center",
-    marginBottom: 6,
+    marginLeft: 15,
   },
+
+  subheader: {
+    color: "#90a5f9ff",
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 8,
+    marginTop: 10,
+  },
+
   _textInput: {
     width: "100%",
     marginBottom: 8,
-    marginTop: 10,
-    padding: 15,
     borderRadius: 25,
     borderWidth: 2,
     borderColor: "#7b9ef6ff",
@@ -110,20 +149,18 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#fff",
-    borderRadius: 25,
+    borderRadius: 20,
     borderWidth: 2,
-    borderColor: "#7b9ef6ff",
+    borderColor: "#aec5ffff",
     paddingHorizontal: 12,
-    height: 50,
     marginTop: 10,
-    marginBottom: 5,
   },
   searchIcon: {
     marginRight: 8,
   },
   searchInput: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 15,
   },
   box: {
     flexDirection: "row",

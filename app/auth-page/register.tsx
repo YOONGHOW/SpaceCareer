@@ -1,7 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
 import React, { useState } from "react";
 import {
   Alert,
@@ -12,7 +10,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { auth, db } from "../../firebaseConfig";
+import { useRegistrationStore } from "./holdRegistrationData";
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -26,10 +24,10 @@ export default function RegisterScreen() {
   const [passwordError, setPasswordError] = useState("");
   const [confirmError, setConfirmError] = useState("");
   const [usernameError, setUsernameError] = useState("");
+  const setAll = useRegistrationStore((s) => s.setAll);
 
   const handleSignup = async () => {
     let isValid = true;
-
     try {
       setEmailError("");
       setPasswordError("");
@@ -66,22 +64,7 @@ export default function RegisterScreen() {
       }
 
       if (!isValid) return;
-
-      const user_role = "job-seeker";
-
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      await setDoc(doc(db, "users", userCredential.user.uid), {
-        uid: userCredential.user.uid,
-        email,
-        username,
-        user_role,
-        createdAt: new Date().toISOString(),
-      });
-      Alert.alert("Signup successful");
+      setAll({ username, email, password, confirmPassword });
       router.push("/auth-page/otpRequest");
     } catch {
       Alert.alert("Email already exists");

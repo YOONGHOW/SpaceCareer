@@ -100,7 +100,7 @@ export default function Homepage() {
       });
 
       Alert.alert("Success", "Job Applied Successfully!");
-      router.push("/job-status");
+      router.push("/(job-seekerTabs)/job-status");
     } catch (error: any) {
       console.error(error);
       Alert.alert("Error", error.message);

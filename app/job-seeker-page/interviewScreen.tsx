@@ -27,7 +27,8 @@ const QUESTIONS = [
 
 type Stage = "intro" | "question" | "result";
 
-const BACKEND_BASE_URL = "http://192.168.100.28:5000";
+const BACKEND_BASE_URL =
+  "http://172.20.10.6:5000"; /*ip address need to change during different wifi*/
 
 const recordingOptions: Audio.RecordingOptions = {
   android: {
@@ -70,6 +71,7 @@ export default function MockInterviewScreen() {
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [voiceError, setVoiceError] = useState<string | null>(null);
+  const [micDisabled, setMicDisabled] = useState(false);
 
   const recordingRef = useRef<Audio.Recording | null>(null);
 
@@ -118,7 +120,7 @@ export default function MockInterviewScreen() {
       // Go to next question
       setCurrentIndex(nextIndex);
       speak("Okay, thank you. Next question.");
-      setTimeout(() => speak(QUESTIONS[nextIndex].text), 1400);
+      setTimeout(() => speak(QUESTIONS[nextIndex].text), 1200);
     } else {
       // Finished all questions → calculate scores
       const result = calculateScores(updated);
@@ -164,12 +166,11 @@ export default function MockInterviewScreen() {
         (status) => {
           // optional: handle status updates here
         },
-        1000 // status update interval in ms
+        1000
       );
 
       recordingRef.current = recording;
       setIsRecording(true);
-      // console.log("Recording started");
     } catch (e) {
       console.error("startRecording error:", e);
       setVoiceError("Failed to start recording.");
@@ -233,6 +234,11 @@ export default function MockInterviewScreen() {
   };
 
   const handleMicPress = () => {
+    if (micDisabled) return;
+    setMicDisabled(true);
+    setTimeout(() => {
+      setMicDisabled(false);
+    }, 1000);
     if (isRecording) {
       stopRecordingAndTranscribe();
     } else {
@@ -250,7 +256,12 @@ export default function MockInterviewScreen() {
       </TouchableOpacity>
 
       <LottieView
-        source={require("../../assets/avatar.json")}
+        key={isRecording ? "hold" : "avatar"}
+        source={
+          isRecording
+            ? require("../../assets/hold.json")
+            : require("../../assets/avatar.json")
+        }
         autoPlay
         loop
         style={{ width: 600, height: 600, marginTop: "-20%" }}
@@ -280,9 +291,13 @@ export default function MockInterviewScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.micButton, isRecording && styles.micButtonRecording]}
+            style={[
+              styles.micButton,
+              isRecording && styles.micButtonRecording,
+              micDisabled && { opacity: 0.5 },
+            ]}
             onPress={handleMicPress}
-            disabled={isTranscribing}
+            disabled={isTranscribing || micDisabled}
           >
             <Ionicons
               name={isRecording ? "mic-off" : "mic"}

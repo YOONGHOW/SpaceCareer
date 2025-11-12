@@ -86,7 +86,7 @@ export default function CareerProfile() {
       setInterestInput("");
       setPersonalityInput("");
 
-      router.push("/(tabs)/home");
+      router.push("/(job-seekerTabs)/home");
     } catch (error: any) {
       console.error(error);
       Alert.alert("Error saving data", error.message);
@@ -123,7 +123,7 @@ export default function CareerProfile() {
         {/* Content Box */}
         <View style={styles.box}>
           <Text style={styles.boxTitle}>Career Profile</Text>
-          <Text style={styles.label}>Skil:</Text>
+          <Text style={styles.label}>Skill:</Text>
 
           {/* Input Field */}
           <View style={{ position: "relative" }}>
@@ -204,6 +204,12 @@ export default function CareerProfile() {
           <TouchableOpacity style={styles.btnNext} onPress={handleAddCareer}>
             <Text style={styles.btnText}>Submit</Text>
           </TouchableOpacity>
+          <Text
+            style={styles.skipText}
+            onPress={() => router.push("/(job-seekerTabs)/home")}
+          >
+            Skip
+          </Text>
         </View>
       </View>
     </SafeAreaView>
@@ -211,6 +217,13 @@ export default function CareerProfile() {
 }
 
 const styles = StyleSheet.create({
+  skipText: {
+    textDecorationLine: "underline",
+    textAlign: "center",
+    marginTop: 20,
+    fontSize: 15,
+    color: "#4a59ffff",
+  },
   container: {
     padding: 24,
     flex: 1,

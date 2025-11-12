@@ -1,7 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
 import React, { useRef, useState } from "react";
+import { auth, db } from "../../firebaseConfig";
+
 import {
+  Alert,
   Image,
   StyleSheet,
   Text,
@@ -9,12 +14,13 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
+import { useRegistrationStore } from "./holdRegistrationData";
+import { SendEmail } from "./send-email";
 export default function OTPVerification() {
   const router = useRouter();
+  const { username, email, password, reset } = useRegistrationStore();
   const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
 
-  // Create refs for each input
   const inputs = useRef<(TextInput | null)[]>([]).current;
 
   const handleChange = (text: string, index: number) => {
@@ -25,6 +31,36 @@ export default function OTPVerification() {
     // Auto-focus next input if not last
     if (text && index < 5) {
       inputs[index + 1]?.focus();
+    }
+  };
+
+  const handleStoreUser = async () => {
+    SendEmail(
+      email,
+      "Use OTP To Verify Your Identity",
+      "Hi, Your SpaceCareer OTP Code is: 950738, valid for 15 mins. NEVER share this code with others, including SpaceCareer staff."
+    );
+
+    try {
+      const user_role = "job-seeker";
+
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      await setDoc(doc(db, "users", userCredential.user.uid), {
+        uid: userCredential.user.uid,
+        email,
+        username,
+        user_role,
+        createdAt: new Date().toISOString(),
+      });
+      Alert.alert("Signup successful");
+      reset();
+      router.push("/");
+    } catch {
+      Alert.alert("Email already exists");
     }
   };
 
@@ -66,7 +102,7 @@ export default function OTPVerification() {
       </Text>
 
       <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText} onPress={() => router.push("/")}>
+        <Text style={styles.buttonText} onPress={handleStoreUser}>
           Verify OTP
         </Text>
       </TouchableOpacity>
